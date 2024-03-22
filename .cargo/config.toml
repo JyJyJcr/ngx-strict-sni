@@ -2,7 +2,7 @@
 # ZLIB_VERSION = "1.3.1"
 # PCRE2_VERSION = "10.42"
 # OPENSSL_VERSION = "3.2.1"
-NGX_VERSION = "1.24.0"
+NGX_VERSION = "1.22.1"
 NGX_INSTALL_DIR = { value = ".nginx", relative = true }
 
 [target.aarch64-apple-darwin]
