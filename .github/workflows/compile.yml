@@ -10,12 +10,20 @@ jobs:
       matrix:
         platform:
           - target: "aarch64-unknown-linux-gnu"
+            host: "macOS-14"
             virt: true
           - target: "x86_64-unknown-linux-gnu"
+            host: "ubuntu-latest"
+            virt: false
+          - target: "aarch64-apple-darwin"
+            host: "macOS-14"
+            virt: false
+          - target: "x86_64-apple-darwin"
+            host: "macOS-13"
             virt: false
         #version: ["1.18.0","1.22.1","1.24.0"]
         version: ["1.22.1"]
-    runs-on: "ubuntu-latest"
+    runs-on: ${{ matrix.platform.host }}
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -23,7 +31,7 @@ jobs:
         uses: uraimo/run-on-arch-action@v2
         with:
           arch: aarch64
-          distro: ubuntu22.04
+          distro: ubuntu_latest
           dockerRunArgs: |
             --volume "${PWD}:/repo" --platform linux/arm64
           install: |
