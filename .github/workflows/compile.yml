@@ -26,9 +26,13 @@ jobs:
           distro: ubuntu22.04
           dockerRunArgs: |
             --volume "${PWD}:/repo" --platform linux/arm64
+          install: |
+            apt-get update -q -y
+            apt-get install -q -y curl
           run: |
             cd /repo
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+            export PATH="${HOME}/.cargo/bin:$PATH"
             rustup target install ${{ matrix.platform.target }}
             NGX_VERSION=${{ matrix.version }} cargo build --target ${{ matrix.platform.target }}
         if: ${{matrix.platform.virt}}
