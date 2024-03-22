@@ -51,8 +51,10 @@ jobs:
           rustup target install ${{ matrix.platform.target }}
           NGX_VERSION=${{ matrix.version }} cargo build --target ${{ matrix.platform.target }}
         if: ${{!matrix.platform.virt}}
+      - name: copy
+        run: cp target/${{ matrix.platform.target }}/debug/*ngx_strict_sni.(so|dylib) ./
       - name: upload
         uses: actions/upload-artifact@v4
         with:
-          name: debug-${{ matrix.platform.target }}
-          path: "target/${{ matrix.platform.target }}/debug/*ngx_http_ssl_strict_sni.(dylib|so)"
+          name: ${{ matrix.platform.target }}+${{ matrix.version }}+debug
+          path: "*ngx_http_ssl_strict_sni.*"
