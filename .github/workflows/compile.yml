@@ -66,10 +66,25 @@ jobs:
         with:
           name: ${{ matrix.platform.target }}+${{ matrix.version }}+debug
           path: "*ngx_http_ssl_strict_sni.*"
-  pack-linux:
-    name: make linux package
+  pack-debian:
+    name: make deb package
     runs-on: ubuntu-latest
-    strategy:
-  pack-macos:
-    name: make macos package
+    steps:
+      - run: echo dummy
+  pub-debian:
+    name: publish deb packages
+    runs-on: ubuntu-latest
+    needs: pack-debian
+    steps:
+      - run: echo dummy
+  pack-brew:
+    name: make brew package
     runs-on: macOS-13
+    steps:
+      - run: echo dummy
+  pub-brew:
+    name: publish brew packages
+    runs-on: macOS-13
+    needs: pack-brew
+    steps:
+      - run: echo dummy
