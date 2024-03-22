@@ -29,6 +29,7 @@ jobs:
           install: |
             apt-get update -q -y
             apt-get install -q -y curl
+            apt-get install build-essential
           run: |
             cd /repo
             curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
