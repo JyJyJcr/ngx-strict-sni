@@ -19,7 +19,7 @@ jobs:
             host: "macOS-14"
             virt: false
           - target: "x86_64-apple-darwin"
-            host: "macOS-12"
+            host: "macOS-13"
             virt: false
         #version: ["1.18.0","1.22.1","1.24.0"]
         version: ["1.22.1"]
