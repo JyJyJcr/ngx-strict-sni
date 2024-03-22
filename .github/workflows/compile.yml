@@ -9,7 +9,5 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-      - name: cache
-        uses: Swatinem/rust-cache@v2
       - name: Build binary
         run: cargo build
