@@ -51,13 +51,25 @@ jobs:
           rustup target install ${{ matrix.platform.target }}
           NGX_VERSION=${{ matrix.version }} cargo build --target ${{ matrix.platform.target }}
         if: ${{!matrix.platform.virt}}
+      - name: copy test
+        run: |
+          for lib in $(ls|grep -E "ngx_http_ssl_strict_sni\.(dylib|so)");do 
       - name: copy
         run: |
           cd target/${{ matrix.platform.target }}/debug/
-          cp "*ngx_strict_sni.(so|dylib)" ../../../
+          for lib in $(ls|grep -E "ngx_http_ssl_strict_sni\.(dylib|so)");do
+            cp "$lib" ../../../
+          done
           cd -
       - name: upload
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.platform.target }}+${{ matrix.version }}+debug
           path: "*ngx_http_ssl_strict_sni.*"
+  pack-linux:
+    name: make linux package
+    runs-on: ubuntu-latest
+    strategy:
+  pack-macos:
+    name: make macos package
+    runs-on: macOS-13
