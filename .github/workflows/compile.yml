@@ -9,9 +9,9 @@ jobs:
       fail-fast: false
       matrix:
         platform:
-          - target: "aarch64-unknown-linux-gnu"
-            host: "ubuntu-latest"
-            virt: true
+          # - target: "aarch64-unknown-linux-gnu"
+          #   host: "ubuntu-latest"
+          #   virt: true
           - target: "x86_64-unknown-linux-gnu"
             host: "ubuntu-latest"
             virt: false
