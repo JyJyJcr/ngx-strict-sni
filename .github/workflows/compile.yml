@@ -35,7 +35,7 @@ jobs:
         run: |
           rustup target install ${{ matrix.platform.target }}
           NGX_VERSION=${{ matrix.version }} cargo build --target ${{ matrix.platform.target }}
-        if: ! ${{matrix.platform.virt}}
+        if: ${{!matrix.platform.virt}}
       - name: upload
         uses: actions/upload-artifact@v4
         with:
