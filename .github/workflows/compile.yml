@@ -10,7 +10,7 @@ jobs:
       matrix:
         platform:
           - target: "aarch64-unknown-linux-gnu"
-            host: "macOS-14"
+            host: "ubuntu-latest"
             virt: true
           - target: "x86_64-unknown-linux-gnu"
             host: "ubuntu-latest"
@@ -19,7 +19,7 @@ jobs:
             host: "macOS-14"
             virt: false
           - target: "x86_64-apple-darwin"
-            host: "macOS-13"
+            host: "macOS-12"
             virt: false
         #version: ["1.18.0","1.22.1","1.24.0"]
         version: ["1.22.1"]
