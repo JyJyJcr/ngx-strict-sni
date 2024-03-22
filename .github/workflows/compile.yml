@@ -61,8 +61,8 @@ jobs:
       - name: upload
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.platform.target }}+${{ matrix.version }}
-          path: "*ngx_http_ssl_strict_sni.*"
+          name: raw+${{ matrix.platform.target }}+${{ matrix.version }}
+          path: "*ngx_strict_sni.*"
   pack-debian:
     name: make deb package
     runs-on: ubuntu-latest
@@ -72,12 +72,36 @@ jobs:
         platform:
           # - target: "aarch64-unknown-linux-gnu"
           - target: "x86_64-unknown-linux-gnu"
+            arch: amd64
         # version: ["1.18.0","1.22.1","1.24.0"]
         os:
           - name: "bookworm"
             ngx: "1.22.1"
     steps:
-      - run: echo dummy
+      - name: download
+        uses: actions/download-artifact@v4
+        with:
+          name: raw+${{ matrix.platform.target }}+${{ matrix.os.ngx }}
+      - name: pile deb
+        run: |
+          mkdir -p deb/usr/lib/nginx/modules
+          mv libngx_strict_sni.so deb/usr/lib/nginx/modules/ngx_http_ssl_strict_sni_module.so
+          echo "load_module modules/ngx_http_ssl_strict_sni_module.so;" > deb/etc/nginx/modules-enabled/50-mod-http-ssl-strict-sni.conf
+      - name: build deb
+        uses: jiro4989/build-deb-action@v3
+        with:
+          package: libnginx-mod-http-ssl-strict-sni
+          package_root: deb
+          maintainer: JyJyJcr
+          version: 1.0.0-dev
+          arch: ${{ matrix.platform.arch }}
+          desc: "Strictly validate SNI == HOST in Nginx."
+          depends: "libc6 (>= 2.34), nginx-abi-1.22.1-7"
+      - name: upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb+${{ matrix.os.name }}+${{ matrix.platform.arch }}
+          path: "libnginx-mod-http-ssl-strict-sni*.deb"
   pub-debian:
     name: publish deb packages
     runs-on: ubuntu-latest
