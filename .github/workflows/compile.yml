@@ -31,7 +31,7 @@ jobs:
             apt-get install -q -y curl
           run: |
             cd /repo
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
             export PATH="${HOME}/.cargo/bin:$PATH"
             rustup target install ${{ matrix.platform.target }}
             NGX_VERSION=${{ matrix.version }} cargo build --target ${{ matrix.platform.target }}
