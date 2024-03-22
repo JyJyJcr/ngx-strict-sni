@@ -55,4 +55,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: debug-${{ matrix.platform.target }}
-          path: "target/${{ matrix.platform.target }}/debug/*ngx_http_ssl_strict_sni.*"
+          path: "target/${{ matrix.platform.target }}/debug/*ngx_http_ssl_strict_sni.(dylib|so)"
