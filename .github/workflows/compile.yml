@@ -11,17 +11,20 @@ jobs:
         platform:
           - target: "aarch64-unknown-linux-gnu"
             host: "ubuntu-latest"
+          - target: "x86_64-unknown-linux-gnu"
+            host: "ubuntu-latest"
+          - target: "aarch64-apple-darwin"
+            host: "macOS-latest"
+          - target: "x86_64-apple-darwin"
+            host: "macOS-latest"
     runs-on: ${{matrix.platform.host}}
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: toolchain
+        run: rustup target install ${{ matrix.platform.target }}
       - name: build
-        uses: houseabsolute/actions-rust-cross@v0
-        with:
-          command: "build"
-          target: ${{ matrix.platform.target }}
-          args: "--locked"
-          strip: true
+        run: cargo build --target ${{ matrix.platform.target }}
       - name: upload
         uses: actions/upload-artifact@v4
         with:
