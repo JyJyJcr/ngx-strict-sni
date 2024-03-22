@@ -54,7 +54,7 @@ jobs:
       - name: copy
         run: |
           cd target/${{ matrix.platform.target }}/debug/
-          for lib in $(ls|grep -E "ngx_http_ssl_strict_sni\.(dylib|so)");do
+          for lib in $(ls|grep -E "ngx_strict_sni\.(dylib|so)");do
             cp "$lib" ../../../
           done
           cd -
@@ -66,6 +66,7 @@ jobs:
   pack-debian:
     name: make deb package
     runs-on: ubuntu-latest
+    needs: compile
     steps:
       - run: echo dummy
   pub-debian:
@@ -77,6 +78,7 @@ jobs:
   pack-brew:
     name: make brew package
     runs-on: macOS-13
+    needs: compile
     steps:
       - run: echo dummy
   pub-brew:
