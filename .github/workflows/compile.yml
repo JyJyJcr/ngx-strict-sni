@@ -1,10 +1,11 @@
-name: compile action test
-
-on: push
+name: build & release
+on:
+  push:
+    branches: main
 
 jobs:
   compile:
-    name: "compile test"
+    name: "build"
     strategy:
       fail-fast: true
       matrix:
@@ -77,6 +78,7 @@ jobs:
         os:
           - name: "bookworm"
             ngx: "1.22.1"
+            deps: "libc6 (>= 2.34), nginx-abi-1.22.1-7"
     steps:
       - name: download
         uses: actions/download-artifact@v4
@@ -86,8 +88,9 @@ jobs:
         run: |
           mkdir -p deb/usr/lib/nginx/modules
           mv libngx_strict_sni.so deb/usr/lib/nginx/modules/ngx_http_ssl_strict_sni_module.so
-          mkdir -p deb/etc/nginx/modules-enabled
-          echo "load_module modules/ngx_http_ssl_strict_sni_module.so;" > deb/etc/nginx/modules-enabled/50-mod-http-ssl-strict-sni.conf
+          mkdir -p deb/usr/share/nginx/modules-available
+          touch deb/usr/share/nginx/modules-available/mod-http-ssl-strict-sni.conf
+          echo "load_module modules/ngx_http_ssl_strict_sni_module.so;" > deb/usr/share/nginx/modules-available/mod-http-ssl-strict-sni.conf
       - name: build deb
         uses: jiro4989/build-deb-action@v3
         with:
@@ -97,7 +100,7 @@ jobs:
           version: 1.0.0-dev
           arch: ${{ matrix.platform.arch }}
           desc: "Strictly validate SNI == HOST in Nginx."
-          depends: "libc6 (>= 2.34), nginx-abi-1.22.1-7"
+          depends: ${{ matrix.os.deps }}
       - name: upload
         uses: actions/upload-artifact@v4
         with:
