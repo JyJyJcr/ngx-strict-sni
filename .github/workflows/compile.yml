@@ -6,7 +6,7 @@ jobs:
   compile:
     name: "compile test"
     strategy:
-      fail-fast: true
+      #fail-fast: true
       matrix:
         platform:
           - target: "aarch64-unknown-linux-gnu"
