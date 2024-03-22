@@ -21,7 +21,7 @@ jobs:
           - target: "x86_64-apple-darwin"
             host: "macOS-13"
             virt: false
-        #version: ["1.18.0","1.22.1","1.24.0"]
+        # version: ["1.18.0","1.22.1","1.24.0"]
         version: ["1.22.1"]
     runs-on: ${{ matrix.platform.host }}
     steps:
@@ -52,7 +52,10 @@ jobs:
           NGX_VERSION=${{ matrix.version }} cargo build --target ${{ matrix.platform.target }}
         if: ${{!matrix.platform.virt}}
       - name: copy
-        run: cp target/${{ matrix.platform.target }}/debug/*ngx_strict_sni.(so|dylib) ./
+        run: |
+          cd target/${{ matrix.platform.target }}/debug/
+          cp "*ngx_strict_sni.(so|dylib)" ../../../
+          cd -
       - name: upload
         uses: actions/upload-artifact@v4
         with:
