@@ -23,11 +23,12 @@ jobs:
         uses: uraimo/run-on-arch-action@v2
         with:
           arch: aarch64
-          distro: "ubuntu_latest"
+          distro: ubuntu22.04
           dockerRunArgs: |
-            --volume "${PWD}:/repo"
+            --volume "${PWD}:/repo" --platform linux/arm64
           run: |
             cd /repo
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
             rustup target install ${{ matrix.platform.target }}
             NGX_VERSION=${{ matrix.version }} cargo build --target ${{ matrix.platform.target }}
         if: ${{matrix.platform.virt}}
