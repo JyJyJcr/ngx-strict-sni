@@ -9,4 +9,4 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-ngx = "0.4.1"
+ngx = { git = "https://github.com/JyJyJcr/ngx-rust",branch="ngx_install_dir" }
