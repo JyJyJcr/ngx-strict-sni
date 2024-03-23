@@ -5,7 +5,7 @@ on:
 
 jobs:
   compile:
-    name: "build"
+    name: compile for ${{matrix.platform.target}} with ngx ${{matrix.version}}
     strategy:
       fail-fast: true
       matrix:
@@ -65,7 +65,7 @@ jobs:
           name: raw+${{ matrix.platform.target }}+${{ matrix.version }}
           path: "*ngx_strict_sni.*"
   pack-debian:
-    name: make deb package
+    name: make deb package for ${{matrix.os.name}}-${{matrix.platform.arch}}
     runs-on: ubuntu-latest
     needs: compile
     strategy:
@@ -84,6 +84,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: raw+${{ matrix.platform.target }}+${{ matrix.os.ngx }}
+      - name: get deb commands
+        run: sudo apt-get install -y devscripts dh_nginx
       - name: pile deb
         run: |
           mkdir -p deb/usr/lib/nginx/modules
