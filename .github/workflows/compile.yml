@@ -4,14 +4,32 @@ on:
     branches: main
 
 jobs:
-  docker-test:
-    name: testing docker compile
-    runs-on: macOS-14
-    container: ""
+  test:
+    name: compile and test
+    runs-on: ${{matrix.target.host}}
+    container: ${{matrix.target.image}}
+    strategy:
+      matrix:
+        target:
+          - name: brew
+            host: macos-14
+          - name: debian12_arm64
+            host: ubuntu-latest
+            image: arm64v8/debian:12
+          - name: debian12_amd64
+            host: ubuntu-latest
+            image: amd64/debian:12
     steps:
-      - run: brew install docker colima
-      - run: colima start
-      - run: docker run hello-world
+      - run: uname -a
+      - run: arch
+  # docker-test:
+  #   name: testing docker compile
+  #   runs-on: macOS-14
+  #   container: ""
+  #   steps:
+  #     - run: brew install docker colima
+  #     - run: colima start
+  #     - run: docker run hello-world
       # - run: |
       #     docker run --rm -i -v $PWD:/ws arm64v8/ubuntu:18.04 bash <<'EOF'
       #     set -xeu
