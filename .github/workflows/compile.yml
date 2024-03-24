@@ -1,27 +1,42 @@
-name: build & release
+name: test & release
 on:
   push:
     branches: main
 
 jobs:
   test:
-    name: compile and test
+    name: test
     runs-on: ${{matrix.target.host}}
-    container: ${{matrix.target.image}}
     strategy:
       matrix:
         target:
           - name: brew
             host: macos-14
+            docker: false
           - name: debian12_arm64
             host: ubuntu-latest
+            docker: true
             image: arm64v8/debian:12
           - name: debian12_amd64
             host: ubuntu-latest
+            docker: true
             image: amd64/debian:12
     steps:
-      - run: uname -a
-      - run: arch
+      - name: checkout
+        uses: actions/checkout@v4
+      - name: prepare docker
+        uses: docker/setup-qemu-action@v3
+        if: ${{matrix.target.docker}}
+      - name: run in docker
+        run: |
+          docker run --rm -i -v $PWD:/ws ${{matrix.target.image}} bash <<'EOF'
+          set -xeu
+          cd /ws
+          ls
+          uname -a
+          apt update
+          EOF
+        if: ${{matrix.target.docker}}
   # docker-test:
   #   name: testing docker compile
   #   runs-on: macOS-14
