@@ -9,16 +9,26 @@ jobs:
     runs-on: ubuntu-latest
     container: arm64v8/debian:bookworm
     steps:
-      - name: checkout
-        uses: actions/checkout@v4
-      - name: install by apt
-        run: |
-          apt-get update -q -y
-          apt-get install -q -y curl build-essential libclang-dev
-      - name: install rust
-        run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-      - name: build
-        run: NGX_VERSION= cargo build --release
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+      - run: |
+          docker run --rm -i -v $PWD:/ws arm32v7/ubuntu:18.04 bash <<'EOF'
+          set -xeu
+          cd /ws
+          uname -a
+          apt update
+          arch
+          EOF
+      # - name: checkout
+      #   uses: actions/checkout@v4
+      # - name: install by apt
+      #   run: |
+      #     apt-get update -q -y
+      #     apt-get install -q -y curl build-essential libclang-dev
+      # - name: install rust
+      #   run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      # - name: build
+      #   run: NGX_VERSION= cargo build --release
 
   # compile:
   #   name: compile for ${{matrix.platform.target}} with ngx ${{matrix.version}}
