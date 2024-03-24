@@ -1,5 +1,7 @@
 #!/bin/sh
 
+echo vaildate
+
 # valid
 if [ -z "$1" ];then
     exit 1
@@ -11,6 +13,8 @@ if [ -z "$2" ];then
 else
     target=$2
 fi
+
+echo install curl
 
 # install curl
 if ! which curl; then
@@ -25,16 +29,22 @@ if ! which curl; then
     fi
 fi
 
+echo install rust
+
 # install rust
 if ! which cargo; then
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     export PATH="${HOME}/.cargo/bin:$PATH"
 fi
 
+echo build
+
 # build
 export NGX_VERSION="$ngxver"
 cargo update
 cargo build --target "$target"
+
+echo test
 
 # test preparation
 cp test/test.conf ".nginx/$ngxver/$target/conf/nginx.conf"

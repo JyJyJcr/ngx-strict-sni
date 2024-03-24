@@ -29,9 +29,9 @@ jobs:
         if: ${{matrix.target.docker}}
       - name: run in docker
         run: |
-          docker run --rm -i -v $PWD:/ws ${{matrix.target.image}} bash <<'EOF'
+          docker run --rm -i -v $PWD:/repo ${{matrix.target.image}} bash <<'EOF'
           set -xeu
-          cd /ws
+          cd /repo
           test/test.sh
           EOF
         if: ${{matrix.target.docker}}
