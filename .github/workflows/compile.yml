@@ -84,14 +84,8 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: raw+${{ matrix.platform.target }}+${{ matrix.os.ngx }}
-      - name: inspect
-        run: |
-          pwd
-          ls
-          arch
-          apt list --installed
       - name: get deb commands
-        run: sudo apt-get update && sudo apt-get install -y devscripts dh_nginx
+        run: sudo apt-get update && sudo apt-get install -y debhelper nginx-dev
       - name: pile deb
         run: |
           mkdir -p deb/usr/lib/nginx/modules
