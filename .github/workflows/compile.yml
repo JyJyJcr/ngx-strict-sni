@@ -4,130 +4,143 @@ on:
     branches: main
 
 jobs:
-  compile:
-    name: compile for ${{matrix.platform.target}} with ngx ${{matrix.version}}
-    strategy:
-      fail-fast: true
-      matrix:
-        platform:
-          # - target: "aarch64-unknown-linux-gnu"
-          #   host: "ubuntu-latest"
-          #   virt: true
-          - target: "x86_64-unknown-linux-gnu"
-            host: "ubuntu-latest"
-            virt: false
-          - target: "aarch64-apple-darwin"
-            host: "macOS-14"
-            virt: false
-          - target: "x86_64-apple-darwin"
-            host: "macOS-13"
-            virt: false
-        # version: ["1.18.0","1.22.1","1.24.0"]
-        version: ["1.22.1"]
-    runs-on: ${{ matrix.platform.host }}
+  docker-test:
+    name: testing docker compile
+    runs-on: macOS-14
     steps:
       - name: checkout
         uses: actions/checkout@v4
-      - name: build in virt
-        uses: uraimo/run-on-arch-action@v2
-        with:
-          arch: aarch64
-          distro: ubuntu_latest
-          dockerRunArgs: |
-            --volume "${PWD}:/repo" --platform linux/arm64
-          install: |
-            apt-get update -q -y
-            apt-get install -q -y curl
-            apt-get install -q -y build-essential
-            apt-get install -q -y libclang-dev
-          run: |
-            cd /repo
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-            export PATH="${HOME}/.cargo/bin:$PATH"
-            rustup target install ${{ matrix.platform.target }}
-            NGX_VERSION=${{ matrix.version }} cargo build --release --target ${{ matrix.platform.target }}
-        if: ${{matrix.platform.virt}}
-      - name: build in real
+      - name: install lima
+        run: brew install lima
+      - name: launch lima
         run: |
-          rustup target install ${{ matrix.platform.target }}
-          NGX_VERSION=${{ matrix.version }} cargo build --release --target ${{ matrix.platform.target }}
-        if: ${{!matrix.platform.virt}}
-      - name: copy
-        run: |
-          cd target/${{ matrix.platform.target }}/release/
-          for lib in $(ls|grep -E "ngx_strict_sni\.(dylib|so)");do
-            cp "$lib" ../../../
-          done
-          cd -
-      - name: upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: raw+${{ matrix.platform.target }}+${{ matrix.version }}
-          path: "*ngx_strict_sni.*"
-  pack-debian:
-    name: make deb package for ${{matrix.os.name}}-${{matrix.platform.arch}}
-    runs-on: ubuntu-latest
-    needs: compile
-    strategy:
-      matrix:
-        platform:
-          # - target: "aarch64-unknown-linux-gnu"
-          - target: "x86_64-unknown-linux-gnu"
-            arch: amd64
-        # version: ["1.18.0","1.22.1","1.24.0"]
-        os:
-          - name: "bookworm"
-            ngx: "1.22.1"
-            deps: "libc6 (>= 2.34), nginx-abi-1.22.1-7"
-    steps:
-      - name: download
-        uses: actions/download-artifact@v4
-        with:
-          name: raw+${{ matrix.platform.target }}+${{ matrix.os.ngx }}
-      - name: get deb commands
-        run: |
-          sudo apt-get update
-          sudo apt-get upgrade
-          sudo apt-get install debhelper
-          apt search nginx-dev
-          sudo apt-get install nginx-dev
-      - name: pile deb
-        run: |
-          mkdir -p deb/usr/lib/nginx/modules
-          mv libngx_strict_sni.so deb/usr/lib/nginx/modules/ngx_http_ssl_strict_sni_module.so
-          mkdir -p deb/usr/share/nginx/modules-available
-          touch deb/usr/share/nginx/modules-available/mod-http-ssl-strict-sni.conf
-          echo "load_module modules/ngx_http_ssl_strict_sni_module.so;" > deb/usr/share/nginx/modules-available/mod-http-ssl-strict-sni.conf
-      - name: build deb
-        uses: jiro4989/build-deb-action@v3
-        with:
-          package: libnginx-mod-http-ssl-strict-sni
-          package_root: deb
-          maintainer: JyJyJcr
-          version: 1.0.0-dev
-          arch: ${{ matrix.platform.arch }}
-          desc: "Strictly validate SNI == HOST in Nginx."
-          depends: ${{ matrix.os.deps }}
-      - name: upload
-        uses: actions/upload-artifact@v4
-        with:
-          name: deb+${{ matrix.os.name }}+${{ matrix.platform.arch }}
-          path: "libnginx-mod-http-ssl-strict-sni*.deb"
-  pub-debian:
-    name: publish deb packages
-    runs-on: ubuntu-latest
-    needs: pack-debian
-    steps:
-      - run: echo dummy
-  pack-brew:
-    name: make brew package
-    runs-on: macOS-13
-    needs: compile
-    steps:
-      - run: echo dummy
-  pub-brew:
-    name: publish brew packages
-    runs-on: macOS-13
-    needs: pack-brew
-    steps:
-      - run: echo dummy
+          echo ""|limactl create --name debian-12 template://debian-12
+          limactl start debian-12
+          limactl shell debian-12 sudo apt install debhelper nginx-dev
+          limactl shell debian-12 bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+
+  # compile:
+  #   name: compile for ${{matrix.platform.target}} with ngx ${{matrix.version}}
+  #   strategy:
+  #     fail-fast: true
+  #     matrix:
+  #       platform:
+  #         # - target: "aarch64-unknown-linux-gnu"
+  #         #   host: "ubuntu-latest"
+  #         #   virt: true
+  #         - target: "x86_64-unknown-linux-gnu"
+  #           host: "ubuntu-latest"
+  #           virt: false
+  #         - target: "aarch64-apple-darwin"
+  #           host: "macOS-14"
+  #           virt: false
+  #         - target: "x86_64-apple-darwin"
+  #           host: "macOS-13"
+  #           virt: false
+  #       # version: ["1.18.0","1.22.1","1.24.0"]
+  #       version: ["1.22.1"]
+  #   runs-on: ${{ matrix.platform.host }}
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v4
+  #     - name: build in virt
+  #       uses: uraimo/run-on-arch-action@v2
+  #       with:
+  #         arch: aarch64
+  #         distro: ubuntu_latest
+  #         dockerRunArgs: |
+  #           --volume "${PWD}:/repo" --platform linux/arm64
+  #         install: |
+  #           apt-get update -q -y
+  #           apt-get install -q -y curl
+  #           apt-get install -q -y build-essential
+  #           apt-get install -q -y libclang-dev
+  #         run: |
+  #           cd /repo
+  #           curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+  #           export PATH="${HOME}/.cargo/bin:$PATH"
+  #           rustup target install ${{ matrix.platform.target }}
+  #           NGX_VERSION=${{ matrix.version }} cargo build --release --target ${{ matrix.platform.target }}
+  #       if: ${{matrix.platform.virt}}
+  #     - name: build in real
+  #       run: |
+  #         rustup target install ${{ matrix.platform.target }}
+  #         NGX_VERSION=${{ matrix.version }} cargo build --release --target ${{ matrix.platform.target }}
+  #       if: ${{!matrix.platform.virt}}
+  #     - name: copy
+  #       run: |
+  #         cd target/${{ matrix.platform.target }}/release/
+  #         for lib in $(ls|grep -E "ngx_strict_sni\.(dylib|so)");do
+  #           cp "$lib" ../../../
+  #         done
+  #         cd -
+  #     - name: upload
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: raw+${{ matrix.platform.target }}+${{ matrix.version }}
+  #         path: "*ngx_strict_sni.*"
+  # pack-debian:
+  #   name: make deb package for ${{matrix.os.name}}-${{matrix.platform.arch}}
+  #   runs-on: ubuntu-latest
+  #   needs: compile
+  #   strategy:
+  #     matrix:
+  #       platform:
+  #         # - target: "aarch64-unknown-linux-gnu"
+  #         - target: "x86_64-unknown-linux-gnu"
+  #           arch: amd64
+  #       # version: ["1.18.0","1.22.1","1.24.0"]
+  #       os:
+  #         - name: "bookworm"
+  #           ngx: "1.22.1"
+  #           deps: "libc6 (>= 2.34), nginx-abi-1.22.1-7"
+  #   steps:
+  #     - name: download
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: raw+${{ matrix.platform.target }}+${{ matrix.os.ngx }}
+  #     - name: get deb commands
+  #       run: |
+  #         sudo apt-get update
+  #         sudo apt-get upgrade
+  #         sudo apt-get install debhelper
+  #     - name: pile deb
+  #       run: |
+  #         mkdir -p deb/usr/lib/nginx/modules
+  #         mv libngx_strict_sni.so deb/usr/lib/nginx/modules/ngx_http_ssl_strict_sni_module.so
+  #         mkdir -p deb/usr/share/nginx/modules-available
+  #         touch deb/usr/share/nginx/modules-available/mod-http-ssl-strict-sni.conf
+  #         echo "load_module modules/ngx_http_ssl_strict_sni_module.so;" > deb/usr/share/nginx/modules-available/mod-http-ssl-strict-sni.conf
+  #     - name: build deb
+  #       uses: jiro4989/build-deb-action@v3
+  #       with:
+  #         package: libnginx-mod-http-ssl-strict-sni
+  #         package_root: deb
+  #         maintainer: JyJyJcr
+  #         version: 1.0.0-dev
+  #         arch: ${{ matrix.platform.arch }}
+  #         desc: "Strictly validate SNI == HOST in Nginx."
+  #         depends: ${{ matrix.os.deps }}
+  #     - name: upload
+  #       uses: actions/upload-artifact@v4
+  #       with:
+  #         name: deb+${{ matrix.os.name }}+${{ matrix.platform.arch }}
+  #         path: "libnginx-mod-http-ssl-strict-sni*.deb"
+  # pub-debian:
+  #   name: publish deb packages
+  #   runs-on: ubuntu-latest
+  #   needs: pack-debian
+  #   steps:
+  #     - run: echo dummy
+  # pack-brew:
+  #   name: make brew package
+  #   runs-on: macOS-13
+  #   needs: compile
+  #   steps:
+  #     - run: echo dummy
+  # pub-brew:
+  #   name: publish brew packages
+  #   runs-on: macOS-13
+  #   needs: pack-brew
+  #   steps:
+  #     - run: echo dummy
