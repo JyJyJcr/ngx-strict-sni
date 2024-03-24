@@ -24,10 +24,10 @@ if ! which curl; then
         brew install curl
     else
         if which apt;then
-            sudo apt-get update
-            sudo apt-get install -q -y curl
+            apt-get update
+            apt-get install -q -y curl
         elif which yum;then
-            sudo yum -y install curl
+            yum -y install curl
         fi
     fi
 fi
@@ -38,11 +38,11 @@ if ! which clang; then
         brew install clang
     else
         if which apt;then
-            sudo apt-get update
-            sudo apt-get install -q -y clang
+            apt-get update
+            apt-get install -q -y clang
         elif which yum;then
-            sudo yum update
-            sudo yum -y install clang
+            yum update
+            yum -y install clang
         fi
     fi
 fi
