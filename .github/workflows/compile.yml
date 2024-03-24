@@ -8,7 +8,8 @@ jobs:
     name: testing docker compile
     runs-on: macOS-14
     steps:
-      - run: brew install --cask docker
+      - run: brew install docker
+      - run: colima start
       - run: docker run hello-world
       # - run: |
       #     docker run --rm -i -v $PWD:/ws arm64v8/ubuntu:18.04 bash <<'EOF'
