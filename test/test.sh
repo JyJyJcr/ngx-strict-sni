@@ -14,6 +14,8 @@ else
     target=$2
 fi
 
+
+
 echo install curl
 
 # install curl
@@ -22,9 +24,25 @@ if ! which curl; then
         brew install curl
     else
         if which apt;then
-            apt install curl
+            sudo apt-get update
+            sudo apt-get install -q -y curl
         elif which yum;then
-            yum install curl
+            sudo yum -y install curl
+        fi
+    fi
+fi
+
+# install clang
+if ! which clang; then
+    if [ "$(uname -s)" -eq 'Darwin' ];then
+        brew install clang
+    else
+        if which apt;then
+            sudo apt-get update
+            sudo apt-get install -q -y clang
+        elif which yum;then
+            sudo yum update
+            sudo yum -y install clang
         fi
     fi
 fi
