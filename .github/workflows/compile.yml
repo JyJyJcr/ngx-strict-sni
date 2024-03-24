@@ -7,7 +7,6 @@ jobs:
   docker-test:
     name: testing docker compile
     runs-on: ubuntu-latest
-    container: arm64v8/debian:bookworm
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
