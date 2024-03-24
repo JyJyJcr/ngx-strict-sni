@@ -14,7 +14,7 @@ jobs:
       - name: install by apt
         run: |
           apt-get update -q -y
-          apt-get install -q -y curl build-essential ibclang-dev
+          apt-get install -q -y curl build-essential libclang-dev
       - name: install rust
         run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
