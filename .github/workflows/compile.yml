@@ -8,15 +8,16 @@ jobs:
     name: testing docker compile
     runs-on: macOS-14
     steps:
-      - run: brew install docker
-      - run: |
-          docker run --rm -i -v $PWD:/ws arm64v8/ubuntu:18.04 bash <<'EOF'
-          set -xeu
-          cd /ws
-          uname -a
-          apt update
-          arch
-          EOF
+      - run: brew install --cask docker
+      - run: docker run hello-world
+      # - run: |
+      #     docker run --rm -i -v $PWD:/ws arm64v8/ubuntu:18.04 bash <<'EOF'
+      #     set -xeu
+      #     cd /ws
+      #     uname -a
+      #     apt update
+      #     arch
+      #     EOF
       # - name: checkout
       #   uses: actions/checkout@v4
       # - name: install by apt
