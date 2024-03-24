@@ -6,7 +6,7 @@ on:
 jobs:
   docker-test:
     name: testing docker compile
-    runs-on: macOS-14
+    runs-on: ubuntu-latest
     container: debian:bookworm
     steps:
       - name: checkout
