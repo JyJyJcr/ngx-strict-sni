@@ -163,35 +163,42 @@ http_request_handler!(strict_sni_access_handler, |request: &mut http::Request| {
     let co = unsafe { request.get_module_loc_conf::<ModuleConfig>(&strict_sni_module) };
     let co = co.expect("module config is none");
 
-    ngx_log_debug_http!(request, "strict_sni module enabled: {:?}", co.status);
+    // ngx_log_debug_http!(request, "strict_sni module enabled: {:?}", co.status);
 
     match co.status {
         ModuleStatus::ON => match unsafe { request.connection().as_mut() } {
             None => {
-                ngx_log_debug_http!(request, "strict_sni connection() nullptr");
+                // ngx_log_debug_http!(request, "strict_sni connection() nullptr");
             }
             Some(con) => {
                 if con.ssl.is_null() {
-                    ngx_log_debug_http!(request, "strict_sni ssl nullptr");
+                    // ngx_log_debug_http!(request, "strict_sni ssl nullptr");
                 } else {
                     let mut name = ngx_null_string!();
                     if unsafe { ngx_ssl_get_server_name(con, request.get_inner().pool, &mut name) }
                         != Status::NGX_OK.into()
                     {
-                        ngx_log_debug_http!(request, "strict_sni ssl_servername nullptr");
+                        // ngx_log_debug_http!(request, "strict_sni ssl_servername nullptr");
                     } else {
                         let sni = name.to_str();
-                        ngx_log_debug_http!(request, "strict_sni ssl_servername \"{}\"", sni);
+                        // ngx_log_debug_http!(request, "strict_sni ssl_servername \"{}\"", sni);
                         for (k, v) in request.headers_in_iterator() {
                             if k.eq_ignore_ascii_case("host") {
                                 if !(v.eq_ignore_ascii_case(sni)) {
-                                    ngx_log_debug_http!(
-                                        request,
-                                        "strict_sni violation: ssl_servername: \"{}\" != host: \"{}\"",
-                                        sni,
-                                        v
-                                    );
+                                    // ngx_log_debug_http!(
+                                    //     request,
+                                    //     "strict_sni violation: ssl_servername: \"{}\" != host: \"{}\"",
+                                    //     sni,
+                                    //     v
+                                    // );
                                     return http::HTTPStatus::MISDIRECTED_REQUEST.into();
+                                } else {
+                                    // ngx_log_debug_http!(
+                                    //     request,
+                                    //     "strict_sni pass: ssl_servername: \"{}\" == host: \"{}\"",
+                                    //     sni,
+                                    //     v
+                                    // );
                                 }
                             }
                         }
