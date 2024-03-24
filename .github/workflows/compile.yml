@@ -6,8 +6,8 @@ on:
 jobs:
   docker-test:
     name: testing docker compile
-    runs-on: macOS-13
-    container: bookworm
+    runs-on: macOS-14
+    container: debian:bookworm
     steps:
       - name: checkout
         uses: actions/checkout@v4
