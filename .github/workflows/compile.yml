@@ -32,11 +32,12 @@ jobs:
           docker run --rm -i -v $PWD:/ws ${{matrix.target.image}} bash <<'EOF'
           set -xeu
           cd /ws
-          ls
-          uname -a
-          apt update
+          test/test.sh
           EOF
         if: ${{matrix.target.docker}}
+      - name: run in real
+        run: |
+          test/test.sh
   # docker-test:
   #   name: testing docker compile
   #   runs-on: macOS-14
