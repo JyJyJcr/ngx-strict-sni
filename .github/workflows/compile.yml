@@ -7,8 +7,9 @@ jobs:
   docker-test:
     name: testing docker compile
     runs-on: macOS-14
+    container: ""
     steps:
-      - run: brew install docker
+      - run: brew install docker colima
       - run: colima start
       - run: docker run hello-world
       # - run: |
