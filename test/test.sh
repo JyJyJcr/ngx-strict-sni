@@ -18,7 +18,7 @@ echo install curl
 
 # install curl
 if ! which curl; then
-    if [ "$(uname -s)" == 'Darwin' ];then
+    if [ "$(uname -s)" -eq 'Darwin' ];then
         brew install curl
     else
         if which apt;then
