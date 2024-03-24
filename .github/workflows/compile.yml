@@ -40,7 +40,11 @@ jobs:
         if: ${{matrix.target.docker}}
       - name: run in docker
         run: |
-          docker run --rm -i -v $PWD:/repo ${{matrix.target.image}} bash <<'EOF'
+          docker run \
+          -u "$(id -u $USER):$(id -g $USER)" \
+          -v /etc/passwd:/etc/passwd:ro \
+          -v /etc/group:/etc/group:ro \
+          --rm -i -v $PWD:/repo ${{matrix.target.image}} bash <<'EOF'
           set -xeu
           cd /repo
           test/test.sh ${{matrix.target.ngx}} ${{matrix.target.triple}}
