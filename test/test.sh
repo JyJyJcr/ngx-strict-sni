@@ -1,8 +1,7 @@
 #!/bin/sh
 
+# validate
 echo vaildate
-
-# valid
 if [ -z "$1" ];then
     exit 1
 else
@@ -14,36 +13,18 @@ else
     target=$2
 fi
 
-
-
-echo install curl
-
-# install curl
-if ! which curl; then
-    if [ "$(uname -s)" = 'Darwin' ];then
-        brew install curl
-    else
-        if which apt;then
-            apt-get update
-            apt-get install -q -y curl
-        elif which yum;then
-            yum -y install curl
-        fi
-    fi
-fi
-
-# install clang
-if ! which clang; then
-    if [ "$(uname -s)" = 'Darwin' ];then
-        brew install clang
-    else
-        if which apt;then
-            apt-get update
-            apt-get install -q -y clang
-        elif which yum;then
-            yum update
-            yum -y install clang
-        fi
+# install
+echo install
+if [ "$(uname -s)" = 'Darwin' ];then
+    brew update
+    # we already have them
+else
+    if which apt;then
+        apt-get -y update
+        apt-get -y install curl build-essential libclang-dev
+    elif which yum;then
+        yum -y update
+        yum -y install curl build-essential libclang-dev
     fi
 fi
 
