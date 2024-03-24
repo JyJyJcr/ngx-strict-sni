@@ -41,7 +41,7 @@ jobs:
       - name: run in docker
         run: |
           docker run \
-          -u "$(id -u $USER):$(id -g $USER)" \
+          -u "$(id -u root):$(id -g root)" \
           -v /etc/passwd:/etc/passwd:ro \
           -v /etc/group:/etc/group:ro \
           --rm -i -v $PWD:/repo ${{matrix.target.image}} bash <<'EOF'
