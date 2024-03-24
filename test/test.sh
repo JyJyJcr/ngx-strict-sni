@@ -20,20 +20,27 @@ if [ "$(uname -s)" = 'Darwin' ];then
     # we already have them
 else
     if which apt;then
-        apt-get -y update
-        apt-get -y install curl build-essential libclang-dev
+        sudo apt-get -y update
+        sudo apt-get -y install curl build-essential libclang-dev
     elif which yum;then
-        yum -y update
-        yum -y install curl build-essential libclang-dev
+        sudo yum -y update
+        sudo yum -y install curl build-essential libclang-dev
     fi
+fi
+if [ $? -ne 0 ];then
+    exit 3
 fi
 
 echo install rust
 
 # install rust
 if ! which cargo; then
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
     export PATH="${HOME}/.cargo/bin:$PATH"
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+fi
+
+if [ $? -ne 0 ];then
+    exit 4
 fi
 
 echo build
@@ -42,6 +49,10 @@ echo build
 export NGX_VERSION="$ngxver"
 cargo update
 cargo build --target "$target"
+
+if [ $? -ne 0 ];then
+    exit 6
+fi
 
 echo test
 
