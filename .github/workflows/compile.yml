@@ -7,7 +7,7 @@ jobs:
   docker-test:
     name: testing docker compile
     runs-on: ubuntu-latest
-    container: debian:bookworm
+    container: arm64v8/debian:bookworm
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -17,6 +17,8 @@ jobs:
           apt-get install -q -y curl build-essential libclang-dev
       - name: install rust
         run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+      - name: build
+        run: NGX_VERSION= cargo build --release
 
   # compile:
   #   name: compile for ${{matrix.platform.target}} with ngx ${{matrix.version}}
