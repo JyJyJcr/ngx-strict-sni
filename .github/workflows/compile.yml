@@ -8,8 +8,7 @@ jobs:
     name: testing docker compile
     runs-on: macOS-14
     steps:
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+      - run: brew install docker
       - run: |
           docker run --rm -i -v $PWD:/ws arm64v8/ubuntu:18.04 bash <<'EOF'
           set -xeu
