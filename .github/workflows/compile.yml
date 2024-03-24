@@ -7,17 +7,12 @@ jobs:
   docker-test:
     name: testing docker compile
     runs-on: macOS-14
+    container: bookworm
     steps:
       - name: checkout
         uses: actions/checkout@v4
-      - name: install lima
-        run: brew install lima
-      - name: launch lima
-        run: |
-          echo ""|limactl create --name debian-12 template://debian-12
-          limactl start debian-12
-          limactl shell debian-12 sudo apt install debhelper nginx-dev
-          limactl shell debian-12 bash -c "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y"
+      - name: install rust
+        run: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
   # compile:
   #   name: compile for ${{matrix.platform.target}} with ngx ${{matrix.version}}
