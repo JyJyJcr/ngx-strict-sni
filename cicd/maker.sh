@@ -76,39 +76,54 @@ cd -
 ".nginx/$ngxver/$triple/sbin/nginx"
 
 # test
-
-echo % case 1: host valid url valid
-s1=$(curl -H "Host: localhost" -k https://localhost:4433 -o /dev/null -w '%{http_code}\n' -s)
-echo % case 2: host valid url invalid
-s2=$(curl -H "Host: localhost" -k https://localhost/xxx:4433 -o /dev/null -w '%{http_code}\n' -s)
-echo % case 3: host invalid url valid
-s3=$(curl -H "Host: localguest" -k https://localhost:4433 -o /dev/null -w '%{http_code}\n' -s)
-echo % case 4: host invalid url invalid
-s4=$(curl -H "Host: localguest" -k https://localhost/xxx:4433 -o /dev/null -w '%{http_code}\n' -s)
-echo % case 5: host null url valid
-s5=$(curl -k https://localhost:4433 -o /dev/null -w '%{http_code}\n' -s)
-echo % case 6: host null url invalid
-s6=$(curl -k https://localhost/xxx:4433 -o /dev/null -w '%{http_code}\n' -s)
+can=-1
+for url in https://localhost:4433/ https://localhost:4433/xxx; do
+    for host in localhost localguest; do
+        for port in 4433 4422; do
+            can=$(expr $can + 1)
+            ret=$(curl -H "Host: $host:$port" -k $url -o /dev/null -w '%{http_code}\n' -s)
+            echo "case $can: Host=$host:$port url=$url -> $ret"
+            eval "ret$can=$ret"
+        done
+    done
+    can=$(expr $can + 1)
+    ret=$(curl -k $url -o /dev/null -w '%{http_code}\n' -s)
+    echo "case $can: Host..null url=$url -> $ret"
+    eval "ret$can=$ret"
+done
 
 # test finale
 ".nginx/$ngxver/$triple/sbin/nginx" -s stop
-if [ $s1 -ne 200 ];then
-    exit 61
+
+if [ $ret0 -ne 200 ];then
+     exit 60
 fi
-if [ $s2 -ne 404 ];then
-    exit 62
+if [ $ret1 -ne 421 ];then
+     exit 61
 fi
-if [ $s3 -ne 421 ];then
-    exit 63
+if [ $ret2 -ne 421 ];then
+     exit 62
 fi
-if [ $s4 -ne 421 ];then
-    exit 64
+if [ $ret3 -ne 421 ];then
+     exit 63
 fi
-if [ $s5 -ne 200 ];then
-    exit 65
+if [ $ret4 -ne 200 ];then
+     exit 64
 fi
-if [ $s6 -ne 404 ];then
-    exit 66
+if [ $ret5 -ne 404 ];then
+     exit 65
+fi
+if [ $ret6 -ne 421 ];then
+     exit 66
+fi
+if [ $ret7 -ne 421 ];then
+     exit 67
+fi
+if [ $ret8 -ne 421 ];then
+     exit 68
+fi
+if [ $ret9 -ne 404 ];then
+     exit 69
 fi
 
 if [ "$is_release" = "yes" ];then
