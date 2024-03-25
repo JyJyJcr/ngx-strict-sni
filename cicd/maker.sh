@@ -78,17 +78,17 @@ cd -
 # test
 
 echo % case 1: host valid url valid
-s1=$(curl -H "Host: localhost" -k https://localhost -o /dev/null -w '%{http_code}\n' -s)
+s1=$(curl -H "Host: localhost" -k https://localhost:4433 -o /dev/null -w '%{http_code}\n' -s)
 echo % case 2: host valid url invalid
-s2=$(curl -H "Host: localhost" -k https://localhost/xxx -o /dev/null -w '%{http_code}\n' -s)
+s2=$(curl -H "Host: localhost" -k https://localhost/xxx:4433 -o /dev/null -w '%{http_code}\n' -s)
 echo % case 3: host invalid url valid
-s3=$(curl -H "Host: localguest" -k https://localhost -o /dev/null -w '%{http_code}\n' -s)
+s3=$(curl -H "Host: localguest" -k https://localhost:4433 -o /dev/null -w '%{http_code}\n' -s)
 echo % case 4: host invalid url invalid
-s4=$(curl -H "Host: localguest" -k https://localhost/xxx -o /dev/null -w '%{http_code}\n' -s)
+s4=$(curl -H "Host: localguest" -k https://localhost/xxx:4433 -o /dev/null -w '%{http_code}\n' -s)
 echo % case 5: host null url valid
-s5=$(curl -k https://localhost -o /dev/null -w '%{http_code}\n' -s)
+s5=$(curl -k https://localhost:4433 -o /dev/null -w '%{http_code}\n' -s)
 echo % case 6: host null url invalid
-s6=$(curl -k https://localhost/xxx -o /dev/null -w '%{http_code}\n' -s)
+s6=$(curl -k https://localhost/xxx:4433 -o /dev/null -w '%{http_code}\n' -s)
 
 # test finale
 ".nginx/$ngxver/$triple/sbin/nginx" -s stop
