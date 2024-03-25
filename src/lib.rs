@@ -1,10 +1,9 @@
 use ngx::ffi::{
     nginx_version, ngx_array_push, ngx_command_t, ngx_conf_t, ngx_http_core_module,
-    ngx_http_handler_pt, ngx_http_module_t, ngx_http_phases_NGX_HTTP_ACCESS_PHASE, ngx_http_port_t,
-    ngx_http_request_t, ngx_inet_get_port, ngx_int_t, ngx_module_t, ngx_parse_addr_port,
-    ngx_ssl_get_server_name, ngx_str_t, ngx_uint_t, NGX_CONF_TAKE1, NGX_HTTP_LOC_CONF,
-    NGX_HTTP_MAIN_CONF, NGX_HTTP_MODULE, NGX_HTTP_SRV_CONF, NGX_RS_HTTP_LOC_CONF_OFFSET,
-    NGX_RS_MODULE_SIGNATURE,
+    ngx_http_handler_pt, ngx_http_module_t, ngx_http_phases_NGX_HTTP_ACCESS_PHASE,
+    ngx_http_request_t, ngx_inet_get_port, ngx_int_t, ngx_module_t, ngx_ssl_get_server_name,
+    ngx_str_t, ngx_uint_t, NGX_CONF_TAKE1, NGX_HTTP_LOC_CONF, NGX_HTTP_MAIN_CONF, NGX_HTTP_MODULE,
+    NGX_HTTP_SRV_CONF, NGX_RS_HTTP_LOC_CONF_OFFSET, NGX_RS_MODULE_SIGNATURE,
 };
 use ngx::http::MergeConfigError;
 use ngx::{core, core::Status, http, http::HTTPModule};
@@ -13,7 +12,6 @@ use ngx::{
     ngx_string,
 };
 use std::borrow::Borrow;
-use std::net::SocketAddr;
 use std::os::raw::{c_char, c_void};
 
 ngx_modules!(strict_sni_module);
