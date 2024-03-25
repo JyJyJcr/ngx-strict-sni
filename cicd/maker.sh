@@ -5,12 +5,17 @@ echo vaildate
 if [ -z "$1" ];then
     exit 1
 else
-    ngxver=$1
+    target=$1
 fi
 if [ -z "$2" ];then
     exit 2
 else
-    target=$2
+    ngxver=$2
+fi
+if [ -z "$3" ];then
+    exit 3
+else
+    triple=$3
 fi
 
 # # install
@@ -31,40 +36,46 @@ fi
 #     exit 3
 # fi
 
-echo install rust
-
 # install rust
+echo install rust
 if ! which cargo; then
     export PATH="${HOME}/.cargo/bin:$PATH"
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 fi
-
 if [ $? -ne 0 ];then
     exit 4
 fi
 
-echo build
-
 # build
+echo build
 export NGX_VERSION="$ngxver"
 cargo update
-cargo build --target "$target"
-
+cargo build --target "$triple"
 if [ $? -ne 0 ];then
     exit 6
 fi
 
-echo test
+if [ "$4" != "test" ];then
+    if [ -e "cicd/target/$target/gen.sh" ];then
+        "cicd/target/$target/gen.sh"
+        exit $?
+    else
+        echo no gen.sh
+        exit 0
+    fi
+fi
 
+# test
+echo test
 # test preparation
-cp test/test.conf ".nginx/$ngxver/$target/conf/nginx.conf"
-cd "target/$target/debug"
+cp cicd/test.conf ".nginx/$ngxver/$triple/conf/nginx.conf"
+cd "target/$triple/debug"
 for lib in $(ls|grep -E "ngx_strict_sni\.(dylib|so)");do
-    cp "$lib" "../../../.nginx/$ngxver/$target/"
-    echo "load_module $lib;" > "../../../.nginx/$ngxver/$target/conf/load_module.conf"
+    cp "$lib" "../../../.nginx/$ngxver/$triple/"
+    echo "load_module $lib;" > "../../../.nginx/$ngxver/$triple/conf/load_module.conf"
 done
 cd -
-".nginx/$ngxver/$target/sbin/nginx"
+".nginx/$ngxver/$triple/sbin/nginx"
 
 # test
 
@@ -82,7 +93,7 @@ echo % case 6: host null url invalid
 s6=$(curl -k https://localhost/xxx -o /dev/null -w '%{http_code}\n' -s)
 
 # test finale
-".nginx/$ngxver/$target/sbin/nginx" -s stop
+".nginx/$ngxver/$triple/sbin/nginx" -s stop
 if [ $s1 -ne 200 ];then
     exit 61
 fi
