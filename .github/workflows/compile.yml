@@ -39,6 +39,7 @@ jobs:
           path: |
             ${{ github.workspace }}/.cache/src
             ${{ github.workspace }}/.nginx
+            ${{ github.workspace }}/target
           key: src+${{matrix.target.name}}+${{matrix.target.ngx}}
       - name: prepare docker
         uses: docker/setup-qemu-action@v3

@@ -128,7 +128,7 @@ fi
 
 if [ "$is_release" = "yes" ];then
     if [ -e "cicd/target/$target/gen.sh" ];then
-        "cicd/target/$target/gen.sh"
+        "cicd/target/$target/gen.sh" "$ngxver" "$triple"
         exit $?
     else
         echo no gen.sh
