@@ -44,12 +44,12 @@ jobs:
         uses: docker/setup-qemu-action@v3
         if: ${{matrix.target.docker}}
       - name: view cache
+        continue-on-error: true
         run: |
           echo "${{ github.workspace }}/.cache/src"
           echo "${{ github.workspace }}/.nginx"
           ls -la "${{ github.workspace }}/.cache/src"
           ls -la "${{ github.workspace }}/.nginx"
-          echo end
       - name: run in docker
         run: |
           docker build ./cicd/target/${{matrix.target.name}} -t "runner:latest"
@@ -71,6 +71,7 @@ jobs:
           cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
         if: ${{!matrix.target.docker}}
       - name: view cache
+        continue-on-error: true
         run: |
           echo "${{ github.workspace }}/.cache/src"
           echo "${{ github.workspace }}/.nginx"
