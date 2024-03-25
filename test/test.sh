@@ -13,23 +13,23 @@ else
     target=$2
 fi
 
-# install
-echo install
-if [ "$(uname -s)" = 'Darwin' ];then
-    brew update
-    # we already have them
-else
-    if which apt;then
-        apt-get -y update
-        apt-get -y install curl build-essential libclang-dev
-    elif which yum;then
-        yum -y update
-        yum -y install curl build-essential libclang-dev
-    fi
-fi
-if [ $? -ne 0 ];then
-    exit 3
-fi
+# # install
+# echo install
+# if [ "$(uname -s)" = 'Darwin' ];then
+#     brew update
+#     # we already have them
+# else
+#     if which apt;then
+#         apt-get -y update
+#         apt-get -y install curl build-essential libclang-dev
+#     elif which yum;then
+#         yum -y update
+#         yum -y install curl build-essential libclang-dev
+#     fi
+# fi
+# if [ $? -ne 0 ];then
+#     exit 3
+# fi
 
 echo install rust
 
