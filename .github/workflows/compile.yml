@@ -40,9 +40,10 @@ jobs:
         if: ${{matrix.target.docker}}
       - name: run in docker
         run: |
-          sudo echo '{"userns-remap" : "default"}' > /etc/docker/daemon.json
-          sudo systemctl restart docker
           docker run \
+          -u "$(id -u root):$(id -g root)" \
+          -v /etc/passwd:/etc/passwd:ro \
+          -v /etc/group:/etc/group:ro \
           --rm -i -v $PWD:/repo ${{matrix.target.image}} bash <<'EOF'
           set -xeu
           cd /repo
