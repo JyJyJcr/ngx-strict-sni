@@ -1,0 +1,13 @@
+#!/bin/sh
+set -e
+# WARN: this script is a mimic of scripts dh_nginx generated. maybe cause err.
+
+# common var
+avail=/usr/share/nginx/modules-available/mod-http-ssl-strict-sni.conf
+enable=/etc/nginx/modules-enabled/50-mod-http-ssl-strict-sni.conf
+
+if [ "$1" = "remove" ] || [ "$1" = "deconfigure" ] ; then
+    if [ -L $enable ]; then
+            mv $enable $enable.removed
+    fi
+fi

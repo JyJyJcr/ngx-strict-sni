@@ -1,12 +1,30 @@
 [package]
 name = "ngx-strict-sni"
 version = "1.0.0-dev"
+authors = ["JyJyJcr <82190170+JyJyJcr@users.noreply.github.com>"]
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+homepage = "https://github.com/JyJyJcr/ngx-strict-sni"
+description = "An Nginx module strictly validating SNI == Host."
 
 [lib]
 crate-type = ["cdylib"]
 
 [dependencies]
 ngx = { git = "https://github.com/JyJyJcr/ngx-rust",branch="ngx_install_dir" }
+
+[package.metadata.deb]
+name = "libnginx-mod-http-ssl-strict-sni"
+section="httpd"
+priority="optional"
+depends = ["$auto","nginx-abi-1.22.1-7"]
+recommends = "nginx"
+
+assets = [
+    ["target/release/libngx_strict_sni.so", "usr/lib/nginx/modules/ngx_http_ssl_strict_sni_module.so", "644"],
+    ["debian/loader.conf", "usr/share/nginx/modules-available/mod-http-ssl-strict-sni.conf", "644"],
+]
+maintainer-scripts = "debian/scripts"
+
+extended-description = """\
+Nginx doesn't and won't check the integrity of SNI and Host header.
+This module adds the validation stage of them, and when the request violate the rule, return Status 421 Misdirected Request."""

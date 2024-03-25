@@ -5,10 +5,14 @@ on:
 
 jobs:
   compile:
-    name: ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }} on ${{matrix.target.name}}
-    runs-on: ${{matrix.target.host}}
+    name: ${{ matrix.mode.tr }} on ${{matrix.target.name}}
+    runs-on: ${{ matrix.target.host }}
     strategy:
       matrix:
+        mode:
+          - tr: ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
+            dr: ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'debug' }}
+            bool: ${{ startsWith(github.ref,'refs/tags/v') }}
         target:
           - name: osx_arm64
             triple: aarch64-apple-darwin
@@ -51,13 +55,13 @@ jobs:
           --rm -i -v $PWD:/repo runner:latest bash <<'EOF'
           set -xeu
           cd /repo
-          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
+          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ matrix.mode.tr }}
           EOF
           sudo chown -R "$(id -u $USER):$(id -g $USER)" .
         if: ${{matrix.target.docker}}
       - name: run in real
         run: |
-          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
+          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ matrix.mode.tr }}
         if: ${{!matrix.target.docker}}
       # - name: save cache
       #   uses: actions/cache/save@v4
@@ -66,9 +70,17 @@ jobs:
       #       ${{ github.workspace }}/.cache/src
       #       ${{ github.workspace }}/.nginx
       #     key: src+${{matrix.target.name}}+${{matrix.target.ngx}}
-      - name: deb
-        run: echo deb pack!
-        if: startsWith(github.ref,'refs/tags/v') && startsWith(matrix.target.name,'debian')
+      - name: raw upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: raw+${{ matrix.target.name }}
+          path: "target/${{matrix.target.triple}}/${{matrix.mode.dr}}/*.deb"
+      - name: deb upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb+${{ matrix.target.name }}
+          path: "target/debian/*.deb"
+        if: matrix.mode.bool && startsWith(matrix.target.name,'debian')
 
   # release:
   #   name: compile for ${{matrix.platform.target}} with ngx ${{matrix.version}}

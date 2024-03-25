@@ -1,0 +1,30 @@
+#!/bin/sh
+set -e
+# WARN: this script is a mimic of scripts dh_nginx generated. maybe cause err.
+
+# common var
+avail=/usr/share/nginx/modules-available/mod-http-ssl-strict-sni.conf
+enable=/etc/nginx/modules-enabled/50-mod-http-ssl-strict-sni.conf
+
+# remove link if remain
+if [ -L $enable.removed ]; then
+        rm $enable.removed
+        removed_link=true
+else
+        removed_link=false
+fi
+
+# Symlink on
+# 1) Fresh installations
+# 2) Reinstalls after automatic removes (preserve admin actions)
+# ↑ ??? by mimic
+if [ -z "$2" -o "$removed_link" = "true" ]; then
+        ln -sf $avail $enable
+fi
+
+# trigger reload
+if [ "$1" = "configure" ] ; then
+    if which dpkg-trigger >/dev/null 2>&1 ; then
+        dpkg-trigger --no-await nginx-reload
+    fi
+fi

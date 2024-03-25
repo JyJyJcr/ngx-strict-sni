@@ -1,0 +1,25 @@
+#!/bin/sh
+set -e
+# WARN: this script is a mimic of scripts dh_nginx generated. maybe cause err.
+
+# common var
+avail=/usr/share/nginx/modules-available/mod-http-ssl-strict-sni.conf
+enable=/etc/nginx/modules-enabled/50-mod-http-ssl-strict-sni.conf
+
+if [ "$1" = "purge" ] ; then
+    if [ -L $enable ]; then
+        rm $enable
+    fi
+    if [ -L $enable.removed ]; then
+        rm $enable.removed
+    fi
+fi
+
+if [ "$1" = "remove" ] ; then
+    if [ -L /etc/nginx/modules-enabled/$to ]; then
+            mv $enable $enable.removed
+    fi
+    if which dpkg-trigger >/dev/null 2>&1 ; then
+            dpkg-trigger --no-await nginx-reload
+    fi
+fi
