@@ -58,6 +58,12 @@ jobs:
         run: |
           cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
         if: ${{!matrix.target.docker}}
+      - name: view cache
+        run: |
+          echo "${{ github.workspace }}/.cache/src"
+          echo "${{ github.workspace }}/.nginx"
+          ls -la "${{ github.workspace }}/.cache/src"
+          ls -la "${{ github.workspace }}/.nginx"
       - name: packing
         run: echo pack!
         if: startsWith(github.ref,'refs/tags/v')
