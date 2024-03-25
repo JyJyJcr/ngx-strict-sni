@@ -39,7 +39,7 @@ jobs:
         uses: docker/setup-qemu-action@v3
         if: ${{matrix.target.docker}}
       - name: prepare docker
-        uses: actions/test
+        uses: ./.github/actions/test
         if: ${{matrix.target.docker}}
       # - name: run in docker
       #   uses: docker
