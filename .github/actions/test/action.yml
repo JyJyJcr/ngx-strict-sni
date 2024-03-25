@@ -1,7 +1,0 @@
-name: 'test'
-description: 'test'
-runs:
-  using: 'docker'
-  image: ./debian12_arm64
-  args:
-    - "uname -s"
