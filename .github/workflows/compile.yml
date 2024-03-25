@@ -10,11 +10,11 @@ jobs:
     strategy:
       matrix:
         target:
-          # - name: osx_arm64
-          #   triple: aarch64-apple-darwin
-          #   ngx: 1.25.4
-          #   host: macos-14
-          #   docker: false
+          - name: osx_arm64
+            triple: aarch64-apple-darwin
+            ngx: 1.25.4
+            host: macos-14
+            docker: false
           # - name: osx_amd64
           #   triple: x86_64-apple-darwin
           #   ngx: 1.25.4
@@ -43,6 +43,12 @@ jobs:
       - name: prepare docker
         uses: docker/setup-qemu-action@v3
         if: ${{matrix.target.docker}}
+      - name: view cache
+        run: |
+          echo "${{ github.workspace }}/.cache/src"
+          echo "${{ github.workspace }}/.nginx"
+          ls -la "${{ github.workspace }}/.cache/src"
+          ls -la "${{ github.workspace }}/.nginx"
       - name: run in docker
         run: |
           docker build ./cicd/target/${{matrix.target.name}} -t "runner:latest"
@@ -51,6 +57,10 @@ jobs:
           set -xeu
           cd /repo
           cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
+          echo .cache/src"
+          echo .nginx"
+          ls -la .cache/src"
+          ls -la .nginx"
           EOF
           sudo chown -R "$(id -u $USER):$(id -g $USER)" .
         if: ${{matrix.target.docker}}
