@@ -4,6 +4,7 @@
 # OPENSSL_VERSION = "3.2.1"
 NGX_VERSION = "1.22.1"
 NGX_INSTALL_DIR = { value = ".nginx", relative = true }
+NGX_CACHE_DIR = { value = ".cache", relative = true }
 
 [target.aarch64-apple-darwin]
 rustflags = [

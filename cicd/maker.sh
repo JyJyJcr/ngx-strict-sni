@@ -17,7 +17,7 @@ if [ -z "$3" ];then
 else
     triple=$3
 fi
-if [ "$4" != "test" ];then
+if [ "$4" = "test" ];then
     is_test=yes
 else
     is_test=no

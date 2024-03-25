@@ -33,6 +33,11 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: resore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ".cache/src"
+          key: src+${{matrix.target.name}}+${{matrix.target.ngx}}
       - name: prepare docker
         uses: docker/setup-qemu-action@v3
         if: ${{matrix.target.docker}}
@@ -51,6 +56,11 @@ jobs:
         run: |
           cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} test
         if: ${{!matrix.target.docker}}
+      - name: save cache
+        uses: actions/cache/save@v4
+        with:
+          path: ".cache/src"
+          key: src+${{matrix.target.name}}+${{matrix.target.ngx}}
   release:
     name: release on ${{matrix.target.name}}
     needs: test
@@ -81,6 +91,11 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
+      - name: resore cache
+        uses: actions/cache/restore@v4
+        with:
+          path: ".cache/src"
+          key: src+${{matrix.target.name}}+${{matrix.target.ngx}}
       - name: prepare docker
         uses: docker/setup-qemu-action@v3
         if: ${{matrix.target.docker}}
@@ -99,6 +114,11 @@ jobs:
         run: |
           cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}}
         if: ${{!matrix.target.docker}}
+      - name: save cache
+        uses: actions/cache/save@v4
+        with:
+          path: ".cache/src"
+          key: src+${{matrix.target.name}}+${{matrix.target.ngx}}
 
   # release:
   #   name: compile for ${{matrix.platform.target}} with ngx ${{matrix.version}}
