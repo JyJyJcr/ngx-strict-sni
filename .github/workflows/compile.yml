@@ -20,25 +20,21 @@ jobs:
           #   ngx: 1.25.4
           #   host: macos-13
           #   docker: false
-          - name: debian12_arm64
-            triple: aarch64-unknown-linux-gnu
-            ngx: 1.22.1
-            host: ubuntu-latest
-            docker: true
-          # - name: debian12_amd64
-          #   triple: x86_64-unknown-linux-gnu
+          # - name: debian12_arm64
+          #   triple: aarch64-unknown-linux-gnu
           #   ngx: 1.22.1
           #   host: ubuntu-latest
           #   docker: true
+          - name: debian12_amd64
+            triple: x86_64-unknown-linux-gnu
+            ngx: 1.22.1
+            host: ubuntu-latest
+            docker: true
     steps:
       - name: checkout
         uses: actions/checkout@v4
       - name: prepare docker
         uses: docker/setup-qemu-action@v3
-        if: ${{matrix.target.docker}}
-      - name: build docker
-        run: |
-          docker build ./.github/images/${{matrix.target.name}} -t "test:latest"
         if: ${{matrix.target.docker}}
       - name: run in docker
         # uses: addnab/docker-run-action@v3
@@ -46,19 +42,18 @@ jobs:
         #   image: ${{matrix.target.image}}
         #   options: --rm -i -v $PWD:/repo
         run: |
+          docker build ./.github/images/${{matrix.target.name}} -t "test:latest"
           docker run \
-          -u "$(id -u $USER):$(id -g $USER)" \
-          -v /etc/passwd:/etc/passwd:ro \
-          -v /etc/group:/etc/group:ro \
           --rm -i -v $PWD:/repo test:latest bash <<'EOF'
           set -xeu
           cd /repo
           test/test.sh ${{matrix.target.ngx}} ${{matrix.target.triple}}
           EOF
         if: ${{matrix.target.docker}}
-      # - name: run in real
-      #   run: |
-      #     test/test.sh ${{matrix.target.ngx}} ${{matrix.target.triple}}
+      - name: run in real
+        run: |
+          test/test.sh ${{matrix.target.ngx}} ${{matrix.target.triple}}
+        if: ${{!matrix.target.docker}}
   # docker-test:
   #   name: testing docker compile
   #   runs-on: macOS-14
