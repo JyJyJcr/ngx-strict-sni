@@ -36,6 +36,10 @@ jobs:
       - name: prepare docker
         uses: docker/setup-qemu-action@v3
         if: ${{matrix.target.docker}}
+      - name: build docker
+        run: |
+          docker build ./.github/images/${{matrix.target.name}} -t "test:latest"
+        if: ${{matrix.target.docker}}
       - name: run in docker
         # uses: addnab/docker-run-action@v3
         # with:
@@ -46,7 +50,7 @@ jobs:
           -u "$(id -u $USER):$(id -g $USER)" \
           -v /etc/passwd:/etc/passwd:ro \
           -v /etc/group:/etc/group:ro \
-          --rm -i -v $PWD:/repo ./.github/images/${{matrix.target.name}} bash <<'EOF'
+          --rm -i -v $PWD:/repo test:latest bash <<'EOF'
           set -xeu
           cd /repo
           test/test.sh ${{matrix.target.ngx}} ${{matrix.target.triple}}
