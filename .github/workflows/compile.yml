@@ -33,7 +33,7 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-      - name: resore cache
+      - name: cache
         uses: actions/cache@v4
         with:
           path: |
