@@ -49,6 +49,7 @@ jobs:
           echo "${{ github.workspace }}/.nginx"
           ls -la "${{ github.workspace }}/.cache/src"
           ls -la "${{ github.workspace }}/.nginx"
+          echo end
       - name: run in docker
         run: |
           docker build ./cicd/target/${{matrix.target.name}} -t "runner:latest"
@@ -61,6 +62,7 @@ jobs:
           echo .nginx"
           ls -la .cache/src"
           ls -la .nginx"
+          echo end
           EOF
           sudo chown -R "$(id -u $USER):$(id -g $USER)" .
         if: ${{matrix.target.docker}}
@@ -74,6 +76,7 @@ jobs:
           echo "${{ github.workspace }}/.nginx"
           ls -la "${{ github.workspace }}/.cache/src"
           ls -la "${{ github.workspace }}/.nginx"
+          echo end
       - name: packing
         run: echo pack!
         if: startsWith(github.ref,'refs/tags/v')
