@@ -3,9 +3,12 @@ on:
   push:
     branches: main
 
+env:
+  IS_RELEASE: ${{ (startsWith(github.ref, 'refs/tags/test-release') || startsWith(github.ref,'refs/tags/v')) && true || false }}
+
 jobs:
-  test:
-    name: test on ${{matrix.target.name}}
+  compile:
+    name: ${{ env.IS_RELEASE == 'true' && 'release' || 'test' }} on ${{matrix.target.name}}
     runs-on: ${{matrix.target.host}}
     strategy:
       matrix:
@@ -36,83 +39,27 @@ jobs:
       - name: resore cache
         uses: actions/cache@v4
         with:
-          path: "${{ github.workspace }}/.cache/src"
+          path: |
+            "${{ github.workspace }}/.cache/src"
+            "${{ github.workspace }}/.nginx"
           key: src+${{matrix.target.name}}+${{matrix.target.ngx}}
       - name: prepare docker
         uses: docker/setup-qemu-action@v3
         if: ${{matrix.target.docker}}
       - name: run in docker
         run: |
-          docker build ./cicd/target/${{matrix.target.name}} -t "test:latest"
+          docker build ./cicd/target/${{matrix.target.name}} -t "runner:latest"
           docker run \
-          --rm -i -v $PWD:/repo test:latest bash <<'EOF'
+          --rm -i -v $PWD:/repo runner:latest bash <<'EOF'
           set -xeu
           cd /repo
-          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} test
+          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ env.IS_RELEASE == 'true' && 'release' || '' }}
           EOF
           sudo chown -R "$(id -u $USER):$(id -g $USER)" .
         if: ${{matrix.target.docker}}
       - name: run in real
         run: |
-          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} test
-        if: ${{!matrix.target.docker}}
-  release:
-    name: release on ${{matrix.target.name}}
-    needs: test
-    runs-on: ${{matrix.target.host}}
-    strategy:
-      matrix:
-        target:
-          # - name: osx_arm64
-          #   triple: aarch64-apple-darwin
-          #   ngx: 1.25.4
-          #   host: macos-14
-          #   docker: false
-          # - name: osx_amd64
-          #   triple: x86_64-apple-darwin
-          #   ngx: 1.25.4
-          #   host: macos-13
-          #   docker: false
-          # - name: debian12_arm64
-          #   triple: aarch64-unknown-linux-gnu
-          #   ngx: 1.22.1
-          #   host: ubuntu-latest
-          #   docker: true
-          - name: debian12_amd64
-            triple: x86_64-unknown-linux-gnu
-            ngx: 1.22.1
-            host: ubuntu-latest
-            docker: true
-    steps:
-      - name: checkout
-        uses: actions/checkout@v4
-      - name: resore cache
-        uses: actions/cache@v4
-        with:
-          path: "${{ github.workspace }}/.cache/src"
-          key: src+${{matrix.target.name}}+${{matrix.target.ngx}}
-      - name: inspect
-        run: |
-          ls -la
-          ls -la .cache
-          ls -la .cache/src
-      - name: prepare docker
-        uses: docker/setup-qemu-action@v3
-        if: ${{matrix.target.docker}}
-      - name: run in docker
-        run: |
-          docker build ./cicd/target/${{matrix.target.name}} -t "release:latest"
-          docker run \
-          --rm -i -v $PWD:/repo release:latest bash <<'EOF'
-          set -xeu
-          cd /repo
-          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}}
-          EOF
-          sudo chown -R "$(id -u $USER):$(id -g $USER)" .
-        if: ${{matrix.target.docker}}
-      - name: run in real
-        run: |
-          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}}
+          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ env.IS_RELEASE == 'true' && 'release' || '' }}
         if: ${{!matrix.target.docker}}
 
   # release:

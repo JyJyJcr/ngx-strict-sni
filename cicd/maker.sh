@@ -17,11 +17,13 @@ if [ -z "$3" ];then
 else
     triple=$3
 fi
-if [ "$4" = "test" ];then
-    is_test=yes
-else
-    is_test=no
+if [ "$4" = "release" ];then
+    is_release=yes
     cargo_flag="--release"
+    cargo_dir="release"
+else
+    is_release=no
+    cargo_dir="debug"
 fi
 
 # # install
@@ -61,21 +63,11 @@ if [ $? -ne 0 ];then
     exit 6
 fi
 
-if [ "$is_test" = "no" ];then
-    if [ -e "cicd/target/$target/gen.sh" ];then
-        "cicd/target/$target/gen.sh"
-        exit $?
-    else
-        echo no gen.sh
-        exit 0
-    fi
-fi
-
 # test
 echo test
 # test preparation
 cp cicd/test.conf ".nginx/$ngxver/$triple/conf/nginx.conf"
-cd "target/$triple/debug"
+cd "target/$triple/$cargo_dir"
 for lib in $(ls|grep -E "ngx_strict_sni\.(dylib|so)");do
     cp "$lib" "../../../.nginx/$ngxver/$triple/"
     echo "load_module $lib;" > "../../../.nginx/$ngxver/$triple/conf/load_module.conf"
@@ -117,4 +109,14 @@ if [ $s5 -ne 200 ];then
 fi
 if [ $s6 -ne 404 ];then
     exit 66
+fi
+
+if [ "$is_release" = "yes" ];then
+    if [ -e "cicd/target/$target/gen.sh" ];then
+        "cicd/target/$target/gen.sh"
+        exit $?
+    else
+        echo no gen.sh
+        exit 0
+    fi
 fi
