@@ -17,6 +17,12 @@ if [ -z "$3" ];then
 else
     triple=$3
 fi
+if [ "$4" != "test" ];then
+    is_test=yes
+else
+    is_test=no
+    cargo_flag="--release"
+fi
 
 # # install
 # echo install
@@ -50,12 +56,12 @@ fi
 echo build
 export NGX_VERSION="$ngxver"
 cargo update
-cargo build --target "$triple"
+cargo build --target "$triple" $cargo_flag
 if [ $? -ne 0 ];then
     exit 6
 fi
 
-if [ "$4" != "test" ];then
+if [ "$is_test" = "no" ];then
     if [ -e "cicd/target/$target/gen.sh" ];then
         "cicd/target/$target/gen.sh"
         exit $?
