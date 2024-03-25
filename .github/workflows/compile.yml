@@ -3,12 +3,9 @@ on:
   push:
     branches: main
 
-env:
-  MODE: ${{ (startsWith(github.ref, 'refs/tags/test-release') || startsWith(github.ref,'refs/tags/v')) && 'release' || 'test' }}
-
 jobs:
   compile:
-    name: ${{ github.env.MODE }} on ${{matrix.target.name}}
+    name: ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }} on ${{matrix.target.name}}
     runs-on: ${{matrix.target.host}}
     strategy:
       matrix:
@@ -53,14 +50,17 @@ jobs:
           --rm -i -v $PWD:/repo runner:latest bash <<'EOF'
           set -xeu
           cd /repo
-          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ github.env.MODE }}
+          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
           EOF
           sudo chown -R "$(id -u $USER):$(id -g $USER)" .
         if: ${{matrix.target.docker}}
       - name: run in real
         run: |
-          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ github.env.MODE }}
+          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
         if: ${{!matrix.target.docker}}
+      - name: packing
+        run: echo pack!
+        if: startsWith(github.ref,'refs/tags/v')
 
   # release:
   #   name: compile for ${{matrix.platform.target}} with ngx ${{matrix.version}}
