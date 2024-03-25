@@ -15,16 +15,16 @@ jobs:
             ngx: 1.25.4
             host: macos-14
             docker: false
-          # - name: osx_amd64
-          #   triple: x86_64-apple-darwin
-          #   ngx: 1.25.4
-          #   host: macos-13
-          #   docker: false
-          # - name: debian12_arm64
-          #   triple: aarch64-unknown-linux-gnu
-          #   ngx: 1.22.1
-          #   host: ubuntu-latest
-          #   docker: true
+          - name: osx_amd64
+            triple: x86_64-apple-darwin
+            ngx: 1.25.4
+            host: macos-13
+            docker: false
+          - name: debian12_arm64
+            triple: aarch64-unknown-linux-gnu
+            ngx: 1.22.1
+            host: ubuntu-latest
+            docker: true
           - name: debian12_amd64
             triple: x86_64-unknown-linux-gnu
             ngx: 1.22.1
