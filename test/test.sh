@@ -20,11 +20,11 @@ if [ "$(uname -s)" = 'Darwin' ];then
     # we already have them
 else
     if which apt;then
-        sudo apt-get -y update
-        sudo apt-get -y install curl build-essential libclang-dev
+        apt-get -y update
+        apt-get -y install curl build-essential libclang-dev
     elif which yum;then
-        sudo yum -y update
-        sudo yum -y install curl build-essential libclang-dev
+        yum -y update
+        yum -y install curl build-essential libclang-dev
     fi
 fi
 if [ $? -ne 0 ];then
