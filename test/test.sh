@@ -67,30 +67,37 @@ cd -
 ".nginx/$ngxver/$target/sbin/nginx"
 
 # test
-echo
+
 echo % case 1: host valid url valid
-echo
-curl -H "Host: localhost" -k https://localhost
-echo
+s1=$(curl -H "Host: localhost" -k https://localhost -o /dev/null -w '%{http_code}\n' -s)
 echo % case 2: host valid url invalid
-echo
-curl -H "Host: localhost" -k https://localhost/xxx
-echo
+s2=$(curl -H "Host: localhost" -k https://localhost/xxx -o /dev/null -w '%{http_code}\n' -s)
 echo % case 3: host invalid url valid
-echo
-curl -H "Host: localguest" -k https://localhost
-echo
+s3=$(curl -H "Host: localguest" -k https://localhost -o /dev/null -w '%{http_code}\n' -s)
 echo % case 4: host invalid url invalid
-echo
-curl -H "Host: localguest" -k https://localhost/xxx
-echo
+s4=$(curl -H "Host: localguest" -k https://localhost/xxx -o /dev/null -w '%{http_code}\n' -s)
 echo % case 5: host null url valid
-echo
-curl -k https://localhost
-echo
+s5=$(curl -k https://localhost -o /dev/null -w '%{http_code}\n' -s)
 echo % case 6: host null url invalid
-echo
-curl -k https://localhost/xxx
+s6=$(curl -k https://localhost/xxx -o /dev/null -w '%{http_code}\n' -s)
 
 # test finale
 ".nginx/$ngxver/$target/sbin/nginx" -s stop
+if [ $s1 -ne 200 ];then
+    exit 61
+fi
+if [ $s2 -ne 404 ];then
+    exit 62
+fi
+if [ $s3 -ne 421 ];then
+    exit 63
+fi
+if [ $s4 -ne 421 ];then
+    exit 64
+fi
+if [ $s5 -ne 200 ];then
+    exit 65
+fi
+if [ $s6 -ne 404 ];then
+    exit 66
+fi

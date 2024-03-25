@@ -11,6 +11,7 @@ use ngx::{
     http_request_handler, ngx_log_debug_http, ngx_modules, ngx_null_command, ngx_null_string,
     ngx_string,
 };
+use std::borrow::Borrow;
 use std::os::raw::{c_char, c_void};
 
 ngx_modules!(strict_sni_module);
@@ -67,7 +68,7 @@ impl http::HTTPModule for Module {
     type LocConf = ModuleConfig;
     unsafe extern "C" fn postconfiguration(cf: *mut ngx_conf_t) -> ngx_int_t {
         match unsafe {
-            http::ngx_http_conf_get_module_main_conf(cf, &ngx_http_core_module).as_mut()
+            http::ngx_http_conf_get_module_main_conf(cf, ngx_http_core_module.borrow()).as_mut()
         } {
             Some(conf) => {
                 match unsafe {
@@ -160,7 +161,7 @@ extern "C" fn strict_sni_command_handler(
 }
 
 http_request_handler!(strict_sni_access_handler, |request: &mut http::Request| {
-    let co = unsafe { request.get_module_loc_conf::<ModuleConfig>(&strict_sni_module) };
+    let co = unsafe { request.get_module_loc_conf::<ModuleConfig>(strict_sni_module.borrow()) };
     let co = co.expect("module config is none");
 
     // ngx_log_debug_http!(request, "strict_sni module enabled: {:?}", co.status);
@@ -185,12 +186,12 @@ http_request_handler!(strict_sni_access_handler, |request: &mut http::Request| {
                         for (k, v) in request.headers_in_iterator() {
                             if k.eq_ignore_ascii_case("host") {
                                 if !(v.eq_ignore_ascii_case(sni)) {
-                                    // ngx_log_debug_http!(
-                                    //     request,
-                                    //     "strict_sni violation: ssl_servername: \"{}\" != host: \"{}\"",
-                                    //     sni,
-                                    //     v
-                                    // );
+                                    ngx_log_debug_http!(
+                                        request,
+                                        "strict_sni violation: ssl_servername: \"{}\" != host: \"{}\"",
+                                        sni,
+                                        v
+                                    );
                                     return http::HTTPStatus::MISDIRECTED_REQUEST.into();
                                 } else {
                                     // ngx_log_debug_http!(
