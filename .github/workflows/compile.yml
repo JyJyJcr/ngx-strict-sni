@@ -74,7 +74,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: raw+${{ matrix.target.name }}
-          path: "target/${{matrix.target.triple}}/${{matrix.mode.dr}}/*.deb"
+          path: |
+            "target/${{matrix.target.triple}}/${{matrix.mode.dr}}/*.so"
+            "target/${{matrix.target.triple}}/${{matrix.mode.dr}}/*.dylib"
       - name: deb upload
         uses: actions/upload-artifact@v4
         with:
