@@ -1,0 +1,8 @@
+name: 'test'
+description: 'test'
+runs:
+  using: 'docker'
+  image: arm64v8/debian:12
+  args:
+    - "-c"
+    - "uname"
