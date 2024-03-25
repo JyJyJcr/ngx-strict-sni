@@ -47,6 +47,11 @@ jobs:
           --rm -i -v $PWD:/repo test:latest bash <<'EOF'
           set -xeu
           cd /repo
+
+          echo inspect!!!!!!
+          whoami
+          ls -la
+
           test/test.sh ${{matrix.target.ngx}} ${{matrix.target.triple}}
           EOF
         if: ${{matrix.target.docker}}
