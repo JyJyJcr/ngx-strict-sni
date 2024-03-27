@@ -20,25 +20,23 @@ jobs:
             ngx: 1.25.4
             host: macos-14
             docker: false
-            cross: false
           - name: osx_amd64
             triple: x86_64-apple-darwin
             ngx: 1.25.4
             host: macos-13
             docker: false
-            cross: false
           - name: debian12_arm64
             triple: aarch64-unknown-linux-gnu
             ngx: 1.22.1
             host: ubuntu-latest
             docker: true
-            cross: false
+            docker-ver: 1
           - name: debian12_amd64
             triple: x86_64-unknown-linux-gnu
             ngx: 1.22.1
             host: ubuntu-latest
             docker: true
-            cross: false
+            docker-ver: 1
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -51,12 +49,22 @@ jobs:
             ${{ github.workspace }}/target
           key: src+${{matrix.target.name}}+${{matrix.target.ngx}}+${{ github.run_id }}
           restore-keys: src+${{matrix.target.name}}+${{matrix.target.ngx}}+
-      - name: prepare docker
+      - name: prepare docker on qemu
         uses: docker/setup-qemu-action@v3
         if: ${{matrix.target.docker}}
+      - name: restore docker image if exist
+        id: restore-docker-image
+        uses: actions/cache@v3
+        with:
+          path: /tmp/docker-registry
+          key: docker+${{matrix.target.name}}+${{matrix.target.ngx}}+${{ github.run_id }}
+          restore-keys: docker+${{matrix.target.name}}+${{matrix.target.ngx}}+
+        if: matrix.target.docker
+      - name: build docker image if not exist
+        run: docker build ./cicd/target/${{matrix.target.name}} -t "runner:latest"
+        if: matrix.target.docker && (! steps.restore-docker-image.outputs.cache-hit)
       - name: run in docker
         run: |
-          docker build ./cicd/target/${{matrix.target.name}} -t "runner:latest"
           docker run \
           --rm -i -v $PWD:/repo runner:latest bash <<'EOF'
           set -xeu
@@ -94,17 +102,13 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: publish
+          fetch-depth: 0
       - name: set gitconfig
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-      - name: inspect
-        run: |
-          git branch
-          git remote
       - name: merge main to publish
         run: |
-          git branch main origin/main
           git merge main -m "ci: catch up to main"
       - name: (apt) install reprepro
         run: |
