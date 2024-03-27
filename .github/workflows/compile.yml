@@ -66,6 +66,7 @@ jobs:
       - name: build and save docker image if not exist
         run: |
           docker build ./cicd/target/${{matrix.target.name}} -t "runner:latest"
+          mkdir -p .docker
           docker save --output .docker/runner.tar "runner:latest"
         if: matrix.target.docker && (! steps.restore-docker-image.outputs.cache-hit)
       - name: run in docker
