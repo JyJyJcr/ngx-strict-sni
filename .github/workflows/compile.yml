@@ -54,7 +54,7 @@ jobs:
         if: ${{matrix.target.docker}}
       - name: restore docker image if exist
         id: restore-docker-image
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .docker
           key: docker+${{matrix.target.name}}+${{matrix.target.ngx}}+${{matrix.target.dockerver}}+${{ github.run_id }}

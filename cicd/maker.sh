@@ -19,11 +19,8 @@ else
 fi
 if [ "$4" = "release" ];then
     is_release=yes
-    cargo_flag="--release"
-    cargo_dir="release"
 else
     is_release=no
-    cargo_dir="debug"
 fi
 
 # # install
@@ -65,13 +62,13 @@ echo build
 export NGX_VERSION="$ngxver"
 cargo update
 if [ "$ign_triple" = "yes" ];then
-    cargo build $cargo_flag
+    cargo build --release
     date
-    ls -l target/$cargo_dir
+    ls -l target/release
 else
-    cargo build --target "$triple" $cargo_flag
+    cargo build --target "$triple" --release
     date
-    ls -l target/$triple/$cargo_dir
+    ls -l target/$triple/release
 fi
 if [ $? -ne 0 ];then
     exit 6
@@ -82,14 +79,14 @@ echo test
 # test preparation
 cp cicd/test.conf ".nginx/$ngxver/$triple/conf/nginx.conf"
 if [ "$ign_triple" = "yes" ];then
-    cd "target/$cargo_dir"
+    cd "target/release"
     for lib in $(ls|grep -E "ngx_strict_sni\.(dylib|so)");do
         cp "$lib" "../../.nginx/$ngxver/$triple/"
         echo "load_module $lib;" > "../../.nginx/$ngxver/$triple/conf/load_module.conf"
     done
     cd -
 else
-    cd "target/$triple/$cargo_dir"
+    cd "target/$triple/release"
     for lib in $(ls|grep -E "ngx_strict_sni\.(dylib|so)");do
         cp "$lib" "../../../.nginx/$ngxver/$triple/"
         echo "load_module $lib;" > "../../../.nginx/$ngxver/$triple/conf/load_module.conf"
