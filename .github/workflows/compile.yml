@@ -134,12 +134,13 @@ jobs:
           name: deb+debian12_arm64
           path: cicd/target/debian12_arm64
       - name: (apt) import gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.APT_GPG_SECRET_KEY }}
+          passphrase: ${{ secrets.APT_GPG_PASSPHRASE }}
+      - name: (apt) check import gpg
         run: |
-          export GPG_TTY=$(tty)
-          echo -n "$GPG_SECRET_SUBKEY_64" | base64 -d |gpg --import
           gpg --list-keys --keyid-format long
-        env:
-          GPG_SECRET_SUBKEY_64: ${{ secrets.APT_GPG_SECRET_SIGN_SUBKEY_64 }}
       - name: (apt) create repository
         run: |
           cd publish/apt
