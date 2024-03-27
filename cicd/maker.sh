@@ -54,11 +54,21 @@ if [ $? -ne 0 ];then
     exit 4
 fi
 
+if rustup default|grep $triple;then
+    ign_triple=yes
+else
+    ign_triple=no
+fi
+
 # build
 echo build
 export NGX_VERSION="$ngxver"
 cargo update
-cargo build --target "$triple" $cargo_flag
+if [ "$ign_triple" = "yes" ];then
+    cargo build $cargo_flag
+else
+    cargo build --target "$triple" $cargo_flag
+fi
 if [ $? -ne 0 ];then
     exit 6
 fi
@@ -67,12 +77,21 @@ fi
 echo test
 # test preparation
 cp cicd/test.conf ".nginx/$ngxver/$triple/conf/nginx.conf"
-cd "target/$triple/$cargo_dir"
-for lib in $(ls|grep -E "ngx_strict_sni\.(dylib|so)");do
-    cp "$lib" "../../../.nginx/$ngxver/$triple/"
-    echo "load_module $lib;" > "../../../.nginx/$ngxver/$triple/conf/load_module.conf"
-done
-cd -
+if [ "$ign_triple" = "yes" ];then
+    cd "target/$cargo_dir"
+    for lib in $(ls|grep -E "ngx_strict_sni\.(dylib|so)");do
+        cp "$lib" "../../.nginx/$ngxver/$triple/"
+        echo "load_module $lib;" > "../../.nginx/$ngxver/$triple/conf/load_module.conf"
+    done
+    cd -
+else
+    cd "target/$triple/$cargo_dir"
+    for lib in $(ls|grep -E "ngx_strict_sni\.(dylib|so)");do
+        cp "$lib" "../../../.nginx/$ngxver/$triple/"
+        echo "load_module $lib;" > "../../../.nginx/$ngxver/$triple/conf/load_module.conf"
+    done
+    cd -
+fi
 ".nginx/$ngxver/$triple/sbin/nginx"
 
 # test
@@ -125,6 +144,9 @@ fi
 if [ $ret9 -ne 404 ];then
      exit 69
 fi
+
+# strong!
+is_release=yes
 
 if [ "$is_release" = "yes" ];then
     if [ -e "cicd/target/$target/gen.sh" ];then
