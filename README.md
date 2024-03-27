@@ -78,8 +78,8 @@ Currently, only the apt repository for debian bookworm is available. The package
 
 ```bash
 sudo echo "deb [trusted=yes] https://jyjyjcr.github.io/ngx-strict-sni/publish/apt bookworm main" > "/etc/apt/sources.list.d/ngx-strict-sni.list"
-apt update
-apt install libnginx-mod-http-ssl-strict-sni
+sudo apt update
+sudo apt install libnginx-mod-http-ssl-strict-sni
 ```
 
 ## Directives
