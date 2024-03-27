@@ -5,44 +5,44 @@ Origin: https://github.com/JyJyJcr/ngx-strict-sni
 Label: ngx-strict-sni
 Suite: stable
 Codename: bookworm
-Date: Wed, 27 Mar 2024 15:35:32 UTC
+Date: Wed, 27 Mar 2024 15:48:07 UTC
 Architectures: amd64 arm64
 Components: main
 Description: apt repository for ngx-strict-sni
 MD5Sum:
- f111c7d469055339a332854cb4ee10c2 824 main/binary-amd64/Packages
- dd70d8d6a006addc9a4d57c5bed5d705 538 main/binary-amd64/Packages.gz
+ 24dd77d498ee77b3a8ad3546e655485c 824 main/binary-amd64/Packages
+ 663e6d3221e880e474bcfe352e903d45 536 main/binary-amd64/Packages.gz
  3549a8f8313166f7bc0e8121b24770de 171 main/binary-amd64/Release
- e8747feb911b78bebb25fe722c09443d 824 main/binary-arm64/Packages
- b15b1cc020ebc4640c1e4237ac3e5870 534 main/binary-arm64/Packages.gz
+ 863962573be2bfa8c37c6891dbab345d 824 main/binary-arm64/Packages
+ 8425d7ea39e99b0cad8c53d480ebaa3a 535 main/binary-arm64/Packages.gz
  3c952b308d05cfb35870387a1c8f259d 171 main/binary-arm64/Release
 SHA1:
- 0f7e030d95f0a0e24b5469476558248a9b9517a8 824 main/binary-amd64/Packages
- 0af6c5e20137823c68db8368433ff52a316244ce 538 main/binary-amd64/Packages.gz
+ b47b229131a29fef9456fae4174a399d2cceb953 824 main/binary-amd64/Packages
+ a098dcda5cecc756f0c13615c8466a8e1d5e59a4 536 main/binary-amd64/Packages.gz
  54c29f6ff2d0e7730e0d0392a2d356943834f1fe 171 main/binary-amd64/Release
- abe9f1c82a17efc24f58f628c98f6597adc358c2 824 main/binary-arm64/Packages
- 405a20e86493723f4ce0ce8c363b30b4e100440a 534 main/binary-arm64/Packages.gz
+ 21e408d0461b008bd02c06071c2ec0c1cc7f9572 824 main/binary-arm64/Packages
+ 6abe6590ab44337512dffbc05953a0a14305091c 535 main/binary-arm64/Packages.gz
  cf9cb9757be2e0ba1faa14ac701bba05f5e8dead 171 main/binary-arm64/Release
 SHA256:
- a7611d055e84481434363dbca8ad07c1e85d3b52eadac80c1ac1c8baaac89504 824 main/binary-amd64/Packages
- 84644d4851305d1e4e9d8c6553ed095dc1a1763b9685500bbb3f5ce9a5523081 538 main/binary-amd64/Packages.gz
+ b9475fc83cb83c5adb74233a89f5f968a7462d81ee31282aa34ad050d51c2af0 824 main/binary-amd64/Packages
+ d3c2bbbde1e8beb41ca932f96dc2c1cf1d27132fe3953cd91b2ee4ff1a424c47 536 main/binary-amd64/Packages.gz
  e41c2c68944ec526062e1e9da9723b73229fd0fafc7276edd6e898ab1642a38a 171 main/binary-amd64/Release
- dc9a584b04624fecd352d6f6f7e4d5e842973fbff9b5420189855875f5eb4c12 824 main/binary-arm64/Packages
- dce73768d9845547387f3ef6cc7f5a1f491d5311fb831339ccfc815039154ce0 534 main/binary-arm64/Packages.gz
+ a169e9303438af862023a703ee4acd48896cdd5b0c8e351da9a9d7bb195e3ee8 824 main/binary-arm64/Packages
+ 55383d24d8e8001d2a8b33a5c50c5690b8cbb00a2f3bfab035b9fd6e47fc9d0d 535 main/binary-arm64/Packages.gz
  5596d3113a2e08d8a71001f84458664b3b68e5b995dbfd1a92cd682bfe79c754 171 main/binary-arm64/Release
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEEqxs8tqPNdtbub/aQFaUHsm7EsqIFAmYEPMQACgkQFaUHsm7E
-sqJnKw//fXKK9WtvGQSF3os3oXPaXsjIHtutxs81yY1gIpg3lAwwg6wAV/8Qubsd
-oh0aFf5aTLVmcKEL3MVK7Kfpj45CIQdahb5WtRMNNjxAOusY1E2Qi6ST8FQcpFyc
-o9yQvOi2B5/D+7eucmIMWexpWh9zbHkC22QNpuZ2So5CXm3Yq9eglagEWgetdpOl
-wa2kttCpoVj4WeI1HSbMfL/jjEmX+vveYSTzxZyA4d/jbHFkGY0t8CW5fg+gaoRY
-xsLGw/3VY0VAovwbHaibgHrG0jOs/UdQ0Ms/UMkEGicDkv5fS2rivb5xXogVwUE4
-huk4DXsszBM8NdJcxQdzLTOD9q2hT2Z3bSK1qCTG8Wv+LsC0alPGjdRiQRhGPt3s
-EMpj/90fTFlTEvS84stJjiwrCwRc5tDbrrV9Wk0Fvfd1VFXnpLTsjGxiJznB38dD
-iIqJJMT3jMFg4Vs3Buu/nf9T3fSlT9cJJ3T7CixLme+BSeMsb1jpABufX4AWOK/+
-vyVQW+cRciSatiNNIXNhlcOc0CFsumawoGDLZAx9xBsdmwQg7igh/e/VJQ5R3JQm
-LqwJCjsR4rn+AFmm1uu97mWC4oIiqCN2iIvWSpsA4BuhIV3JmeYfeNeFPiLCtmfC
-veDLqjUy92aiDBvwP+cWV3pxi+fOJuFKocS10pT4qFo0DZ5cDEg=
-=2XOc
+iQIzBAEBCgAdFiEEqxs8tqPNdtbub/aQFaUHsm7EsqIFAmYEP7cACgkQFaUHsm7E
+sqKfbg/+J8RpnDrhUtxCwAatBqLFHt7wwsgjwPWmU+9VCeOd4+QLuPWFYjXkjTkU
+RYd+/z0gtc2WCSfIvbNvgW83DSlDiAn8CMJZ8a4RCdBvSoi/UEW1rNiQURVEl3IS
+x8yNQiOIU4Zh4qAeP5QDYgEcYG2QoX/gBUX1LwN14eLJq2GjLQ+4a8Z0Ga13WEBg
+Qok/ySbHqM17Kfwl5vibEBJoFGXpW1uddgPzasCUEVh45dRPtmqFEr7LQel1YZec
+A9tBZ/TXGWj2WBuda5WRKv/pIhGnmplXiAHygKJoGhcpaaI+8EHNrlY4BOfMbbeg
+bo9kL2SOqvExHglvvT7zu5z3eExHRTewbi8InSkEnR+d3NTayAg+x9+xI30cXklD
+/vM2V0zi5z21FSjTP7h/0AqfQIfdiU3NoT3wemjCguLxPJAryNCFIm/GIomE1eSb
+pBpvyLvdSYjvb/ZWVng946RXh9V2pOOpMtMboNwPS9lwS0/p0PN4y5iB3zUMlZVi
+62rEQSksATytnr+yD2mI7kNXYO7U+gxeB/cNtFTkxoqebJNHLtT26KVjti5GSQJh
+l5O4wF0L1jgbM9GRJAMsIxfx6UbwTnzEm7khKGjvgWi2gdB1ckmdINlMwyQu6bEf
+G6XY4wmuoSnsfIFlYSJuln7stSBV6/ePV74mjQ68xNSuTs7bSb8=
+=A7Ph
 -----END PGP SIGNATURE-----
