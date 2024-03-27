@@ -21,9 +21,9 @@ recommends = "nginx"
 
 assets = [
     ["target/release/libngx_strict_sni.so", "usr/lib/nginx/modules/ngx_http_ssl_strict_sni_module.so", "644"],
-    ["debian/loader.conf", "usr/share/nginx/modules-available/mod-http-ssl-strict-sni.conf", "644"],
+    ["os/debian/loader.conf", "usr/share/nginx/modules-available/mod-http-ssl-strict-sni.conf", "644"],
 ]
-maintainer-scripts = "debian/scripts"
+maintainer-scripts = "os/debian/scripts"
 
 extended-description = """\
 The ngx_http_ssl_strict_sni module is a validator of the integrity of SNI and the Host header. This blocks "SNI spoofing" to virtual hosts. Without ssl, this module has no effects."""
