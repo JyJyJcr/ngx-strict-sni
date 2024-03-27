@@ -2,11 +2,11 @@
 
 Strict SNI validator for Nginx
 
-## abstruct
+## Abstruct
 
 The ngx_http_ssl_strict_sni module is a validator of the integrity of SNI and the Host header. This blocks "SNI spoofing" to virtual hosts. Without ssl, this module has no effects.
 
-## More information
+## Description
 
 Nginx doesn't and won't check the integrity of SNI and Host header, resulting to allowing "SNI spoofing" between virtual hosts.
 
@@ -70,9 +70,30 @@ $ curl -H "Host: bbb.com" https://aaa.com/foo.txt
 ```
 
 This explanation is written based on the article below:
+
 [NGINXリバースプロキシでTLS Server Name Indication (SNI)と異なるドメイン名のバックエンドホストへルーティングできちゃう件について](https://qiita.com/jqtype/items/bd6f0d819944ef954d88)
 
-## usage
+## Installation
+
+Currently, only the apt repository for debian bookworm is available. The package name is changed to `libnginx-mod-http-ssl-strict-sni` following the standard name style of Nginx modules.
+
+```bash
+sudo echo "deb [trusted=yes] https://jyjyjcr.github.io/ngx-strict-sni/publish/apt bookworm main" > "/etc/apt/sources.list.d/ngx-strict-sni.list"
+sudo apt update
+sudo apt install libnginx-mod-http-ssl-strict-sni
+```
+
+## Directives
+
+### `strict_sni`
+
+Syntax: `strict_sni on | off;`
+
+Default: `strict_sni off;`
+
+Context: `http`, `server`, `location`
+
+## Use Case
 
 ```nginx
 http {

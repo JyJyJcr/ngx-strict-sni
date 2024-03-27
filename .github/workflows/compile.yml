@@ -100,6 +100,8 @@ jobs:
     name: publish binary and package
     needs: compile
     runs-on: ubuntu-latest
+    environment:
+      name: publish
     permissions:
       contents: write
     if: startsWith(github.ref,'refs/tags/v')
@@ -117,9 +119,9 @@ jobs:
         run: |
           git branch main origin/main
           git merge main -m "ci: catch up to main"
-      - name: (apt) install reprepro
+      - name: (apt) install reprepro and dpkg-sig
         run: |
-          sudo apt-get -y install reprepro
+          sudo apt-get -y install reprepro dpkg-sig
       - name: (apt) download .deb from debian12_amd64
         id: dl-debian12_amd64
         uses: actions/download-artifact@v4
@@ -131,13 +133,21 @@ jobs:
         with:
           name: deb+debian12_arm64
           path: cicd/target/debian12_arm64
+      - name: (apt) import gpg
+        run: |
+          echo -n "$GPG_SECRET_SUBKEY_64" | base64 -d |gpg --import
+          gpg --list-keys --keyid-format long
+        env:
+          GPG_SECRET_SUBKEY_64: ${{ secrets.APT_GPG_SECRET_SIGN_SUBKEY_64 }}
       - name: (apt) create repository
         run: |
           cd publish/apt
           for lib in $(ls ../../cicd/target/debian12_amd64 |grep -E '\.deb');do
+            dpkg-sig -k 15A507B26EC4B2A2 --sign builder "../../cicd/target/debian12_amd64/$lib"
             reprepro includedeb bookworm "../../cicd/target/debian12_amd64/$lib"
           done
           for lib in $(ls ../../cicd/target/debian12_arm64 |grep -E '\.deb');do
+            dpkg-sig -k 15A507B26EC4B2A2 --sign builder "../../cicd/target/debian12_arm64/$lib"
             reprepro includedeb bookworm "../../cicd/target/debian12_arm64/$lib"
           done
           reprepro export
