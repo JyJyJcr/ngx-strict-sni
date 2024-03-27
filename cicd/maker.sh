@@ -66,8 +66,12 @@ export NGX_VERSION="$ngxver"
 cargo update
 if [ "$ign_triple" = "yes" ];then
     cargo build $cargo_flag
+    date
+    ls -l target/$cargo_dir
 else
     cargo build --target "$triple" $cargo_flag
+    date
+    ls -l target/$triple/$cargo_dir
 fi
 if [ $? -ne 0 ];then
     exit 6
