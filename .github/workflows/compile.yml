@@ -11,9 +11,9 @@ jobs:
     strategy:
       matrix:
         mode:
-          - tr: release #${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
-            dr: release  #${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'debug' }}
-            bool: true #${{ startsWith(github.ref,'refs/tags/v') }}
+          - tr: ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
+            dr: ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'debug' }}
+            bool: ${{ startsWith(github.ref,'refs/tags/v') }}
         target:
           - name: osx_arm64
             triple: aarch64-apple-darwin
@@ -54,7 +54,7 @@ jobs:
         if: ${{matrix.target.docker}}
       - name: restore docker image if exist
         id: restore-docker-image
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: .docker
           key: docker+${{matrix.target.name}}+${{matrix.target.ngx}}+${{matrix.target.dockerver}}+${{ github.run_id }}
@@ -102,7 +102,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    #if:# startsWith(github.ref,'refs/tags/v')
+    if: startsWith(github.ref,'refs/tags/v')
     steps:
       - name: checkout
         uses: actions/checkout@v4
