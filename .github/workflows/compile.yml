@@ -85,6 +85,8 @@ jobs:
     name: publish binary and package
     needs: compile
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     #if:# startsWith(github.ref,'refs/tags/v')
     steps:
       - name: checkout
@@ -95,6 +97,9 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+      - name: merge main to publish
+        run: |
+          git merge main -m "ci: catch up to main"
       - name: (apt) install reprepro
         run: |
           sudo apt-get -y install reprepro
@@ -118,10 +123,10 @@ jobs:
           for lib in $(ls ../../cicd/target/debian12_arm64 |grep -E '\.deb');do
             reprepro includedeb bookworm "../../cicd/target/debian12_arm64/$lib"
           done
-          rm -r db
           reprepro export
+          rm -r db
           cd -
           git add ./publish/apt/
-          git commit -m "ci: generate or update debian repository"
+          git commit -m "ci: generate/update debian repository"
       - name: push
         run: git push
