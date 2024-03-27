@@ -145,9 +145,6 @@ if [ $ret9 -ne 404 ];then
      exit 69
 fi
 
-# strong!
-is_release=yes
-
 if [ "$is_release" = "yes" ];then
     if [ -e "cicd/target/$target/gen.sh" ];then
         "cicd/target/$target/gen.sh" "$ngxver" "$triple"
