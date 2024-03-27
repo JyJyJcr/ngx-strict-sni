@@ -30,13 +30,13 @@ jobs:
             ngx: 1.22.1
             host: ubuntu-latest
             docker: true
-            docker-ver: 1
+            dockerver: 1
           - name: debian12_amd64
             triple: x86_64-unknown-linux-gnu
             ngx: 1.22.1
             host: ubuntu-latest
             docker: true
-            docker-ver: 1
+            dockerver: 1
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -56,12 +56,17 @@ jobs:
         id: restore-docker-image
         uses: actions/cache@v3
         with:
-          path: /tmp/docker-registry
-          key: docker+${{matrix.target.name}}+${{matrix.target.ngx}}+${{ github.run_id }}
-          restore-keys: docker+${{matrix.target.name}}+${{matrix.target.ngx}}+
+          path: .docker
+          key: docker+${{matrix.target.name}}+${{matrix.target.ngx}}+${{matrix.target.dockerver}}+${{ github.run_id }}
+          restore-keys: docker+${{matrix.target.name}}+${{matrix.target.ngx}}+${{matrix.target.dockerver}}+
         if: matrix.target.docker
-      - name: build docker image if not exist
-        run: docker build ./cicd/target/${{matrix.target.name}} -t "runner:latest"
+      - name: load docker image
+        run: docker load --input .docker/runner.tar
+        if: matrix.target.docker && steps.restore-docker-image.outputs.cache-hit
+      - name: build and save docker image if not exist
+        run: |
+          docker build ./cicd/target/${{matrix.target.name}} -t "runner:latest"
+          docker save --output .docker/runner.tar "runner:latest"
         if: matrix.target.docker && (! steps.restore-docker-image.outputs.cache-hit)
       - name: run in docker
         run: |
@@ -109,6 +114,7 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
       - name: merge main to publish
         run: |
+          git branch main origin/main
           git merge main -m "ci: catch up to main"
       - name: (apt) install reprepro
         run: |
