@@ -70,6 +70,7 @@ $ curl -H "Host: bbb.com" https://aaa.com/foo.txt
 ```
 
 This explanation is written based on the article below:
+
 [NGINXリバースプロキシでTLS Server Name Indication (SNI)と異なるドメイン名のバックエンドホストへルーティングできちゃう件について](https://qiita.com/jqtype/items/bd6f0d819944ef954d88)
 
 ## Installation
@@ -87,7 +88,9 @@ sudo apt install libnginx-mod-http-ssl-strict-sni
 ### `strict_sni`
 
 Syntax: `strict_sni on | off;`
+
 Default: `strict_sni off;`
+
 Context: `http`, `server`, `location`
 
 ## Use Case
