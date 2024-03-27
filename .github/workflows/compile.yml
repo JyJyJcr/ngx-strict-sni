@@ -20,21 +20,25 @@ jobs:
             ngx: 1.25.4
             host: macos-14
             docker: false
+            cross: false
           - name: osx_amd64
             triple: x86_64-apple-darwin
             ngx: 1.25.4
             host: macos-13
             docker: false
+            cross: false
           - name: debian12_arm64
             triple: aarch64-unknown-linux-gnu
             ngx: 1.22.1
             host: ubuntu-latest
             docker: true
+            cross: false
           - name: debian12_amd64
             triple: x86_64-unknown-linux-gnu
             ngx: 1.22.1
             host: ubuntu-latest
             docker: true
+            cross: false
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -69,8 +73,8 @@ jobs:
         with:
           name: raw+${{ matrix.target.name }}
           path: |
-            target/${{matrix.target.triple}}/${{matrix.mode.dr}}/*.so
-            target/${{matrix.target.triple}}/${{matrix.mode.dr}}/*.dylib
+            .nginx/${{matrix.target.ngx}}/${{matrix.target.triple}}/*.so
+            .nginx/${{matrix.target.ngx}}/${{matrix.target.triple}}/*.dylib
       - name: deb upload
         uses: actions/upload-artifact@v4
         with:
@@ -81,7 +85,7 @@ jobs:
     name: publish binary and package
     needs: compile
     runs-on: ubuntu-latest
-    if: startsWith(github.ref,'refs/tags/v')
+    #if:# startsWith(github.ref,'refs/tags/v')
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -99,16 +103,22 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: deb+debian12_amd64
+          path: cicd/target/debian12_amd64
       - name: (apt) download .deb from debian12_arm64
         id: dl-debian12_arm64
         uses: actions/download-artifact@v4
         with:
           name: deb+debian12_arm64
+          path: cicd/target/debian12_arm64
       - name: (apt) create repository
         run: |
           cd publish/apt
-          reprepro includedeb bookworm ${{steps.dl-debian12_amd64.outputs.download-path}}
-          reprepro includedeb bookworm ${{steps.dl-debian12_arm64.outputs.download-path}}
+          for lib in $(ls ../../cicd/target/debian12_amd64 |grep -E '\.deb');do
+            reprepro includedeb bookworm "../../cicd/target/debian12_amd64/$lib"
+          done
+          for lib in $(ls ../../cicd/target/debian12_arm64 |grep -E '\.deb');do
+            reprepro includedeb bookworm "../../cicd/target/debian12_arm64/$lib"
+          done
           rm -r db
           reprepro export
           cd -
