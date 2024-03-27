@@ -11,9 +11,9 @@ jobs:
     strategy:
       matrix:
         mode:
-          - tr: release #${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
-            dr: release  #${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'debug' }}
-            bool: true #${{ startsWith(github.ref,'refs/tags/v') }}
+          - tr: ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
+            dr: ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'debug' }}
+            bool: ${{ startsWith(github.ref,'refs/tags/v') }}
         target:
           - name: osx_arm64
             triple: aarch64-apple-darwin
@@ -102,7 +102,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    #if:# startsWith(github.ref,'refs/tags/v')
+    if: startsWith(github.ref,'refs/tags/v')
     steps:
       - name: checkout
         uses: actions/checkout@v4
