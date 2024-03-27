@@ -138,9 +138,6 @@ jobs:
         with:
           gpg_private_key: ${{ secrets.APT_GPG_SECRET_KEY }}
           passphrase: ${{ secrets.APT_GPG_PASSPHRASE }}
-      - name: (apt) check import gpg
-        run: |
-          gpg --list-keys --keyid-format long
       - name: (apt) create repository
         run: |
           cd publish/apt
