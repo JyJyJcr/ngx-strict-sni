@@ -42,9 +42,6 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-      - name: cache uuid
-        id: generate-cache-uuid
-        uses: filipstefansson/uuid-action@v1
       - name: cache
         uses: actions/cache@v4
         with:
@@ -52,7 +49,7 @@ jobs:
             ${{ github.workspace }}/.cache/src
             ${{ github.workspace }}/.nginx
             ${{ github.workspace }}/target
-          key: src+${{matrix.target.name}}+${{matrix.target.ngx}}+${{steps.generate-cache-uuid.outputs.uuid}}
+          key: src+${{matrix.target.name}}+${{matrix.target.ngx}}+${{ github.run_id }}
           restore-keys: src+${{matrix.target.name}}+${{matrix.target.ngx}}+
       - name: prepare docker
         uses: docker/setup-qemu-action@v3
@@ -101,6 +98,10 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+      - name: inspect
+        run: |
+          git branch
+          git remote
       - name: merge main to publish
         run: |
           git branch main origin/main
