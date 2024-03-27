@@ -205,13 +205,13 @@ http_request_handler!(strict_sni_access_handler, |request: &mut http::Request| {
                                             );
                                             return http::HTTPStatus::MISDIRECTED_REQUEST.into();
                                         } else {
-                                            ngx_log_debug_http!(
-                                                request,
-                                                "strict_sni pass: ssl_servername: \"{}\", port: \"{}\" == host: \"{}\"",
-                                                sni,
-                                                port,
-                                                v
-                                            );
+                                            // ngx_log_debug_http!(
+                                            //     request,
+                                            //     "strict_sni pass: ssl_servername: \"{}\", port: \"{}\" == host: \"{}\"",
+                                            //     sni,
+                                            //     port,
+                                            //     v
+                                            // );
                                         }
                                     }
                                     None => {
@@ -224,12 +224,12 @@ http_request_handler!(strict_sni_access_handler, |request: &mut http::Request| {
                                         );
                                             return http::HTTPStatus::MISDIRECTED_REQUEST.into();
                                         } else {
-                                            ngx_log_debug_http!(
-                                                request,
-                                                "strict_sni pass: ssl_servername: \"{}\" == host: \"{}\"",
-                                                sni,
-                                                v
-                                            );
+                                            // ngx_log_debug_http!(
+                                            //     request,
+                                            //     "strict_sni pass: ssl_servername: \"{}\" == host: \"{}\"",
+                                            //     sni,
+                                            //     v
+                                            // );
                                         }
                                     }
                                 };
