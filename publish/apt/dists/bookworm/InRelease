@@ -1,3 +1,6 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
 Origin: https://github.com/JyJyJcr/ngx-strict-sni
 Label: ngx-strict-sni
 Suite: stable
@@ -27,3 +30,19 @@ SHA256:
  dc9a584b04624fecd352d6f6f7e4d5e842973fbff9b5420189855875f5eb4c12 824 main/binary-arm64/Packages
  dce73768d9845547387f3ef6cc7f5a1f491d5311fb831339ccfc815039154ce0 534 main/binary-arm64/Packages.gz
  5596d3113a2e08d8a71001f84458664b3b68e5b995dbfd1a92cd682bfe79c754 171 main/binary-arm64/Release
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEEqxs8tqPNdtbub/aQFaUHsm7EsqIFAmYEPMQACgkQFaUHsm7E
+sqJnKw//fXKK9WtvGQSF3os3oXPaXsjIHtutxs81yY1gIpg3lAwwg6wAV/8Qubsd
+oh0aFf5aTLVmcKEL3MVK7Kfpj45CIQdahb5WtRMNNjxAOusY1E2Qi6ST8FQcpFyc
+o9yQvOi2B5/D+7eucmIMWexpWh9zbHkC22QNpuZ2So5CXm3Yq9eglagEWgetdpOl
+wa2kttCpoVj4WeI1HSbMfL/jjEmX+vveYSTzxZyA4d/jbHFkGY0t8CW5fg+gaoRY
+xsLGw/3VY0VAovwbHaibgHrG0jOs/UdQ0Ms/UMkEGicDkv5fS2rivb5xXogVwUE4
+huk4DXsszBM8NdJcxQdzLTOD9q2hT2Z3bSK1qCTG8Wv+LsC0alPGjdRiQRhGPt3s
+EMpj/90fTFlTEvS84stJjiwrCwRc5tDbrrV9Wk0Fvfd1VFXnpLTsjGxiJznB38dD
+iIqJJMT3jMFg4Vs3Buu/nf9T3fSlT9cJJ3T7CixLme+BSeMsb1jpABufX4AWOK/+
+vyVQW+cRciSatiNNIXNhlcOc0CFsumawoGDLZAx9xBsdmwQg7igh/e/VJQ5R3JQm
+LqwJCjsR4rn+AFmm1uu97mWC4oIiqCN2iIvWSpsA4BuhIV3JmeYfeNeFPiLCtmfC
+veDLqjUy92aiDBvwP+cWV3pxi+fOJuFKocS10pT4qFo0DZ5cDEg=
+=2XOc
+-----END PGP SIGNATURE-----
