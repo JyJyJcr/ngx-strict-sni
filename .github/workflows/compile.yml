@@ -133,10 +133,14 @@ jobs:
         with:
           name: deb+debian12_arm64
           path: cicd/target/debian12_arm64
+      - name: (apt) import gpg
+        run: |
+          echo -n "$GPG_SECRET_SUBKEY_64" | base64 -d |gpg --import
+          gpg --list-keys --keyid-format long
+        env:
+          GPG_SECRET_SUBKEY_64: ${{ secrets.APT_GPG_SECRET_SIGN_SUBKEY_64 }}
       - name: (apt) create repository
         run: |
-          echo ${{ secrets.APT_GPG_SECRET_SIGN_SUBKEY_64 }} | base64 -d |gpg --import
-          gpg --list-keys --keyid-format long
           cd publish/apt
           for lib in $(ls ../../cicd/target/debian12_amd64 |grep -E '\.deb');do
             dpkg-sig -k 15A507B26EC4B2A2 --sign builder "../../cicd/target/debian12_amd64/$lib"
