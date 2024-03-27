@@ -1,10 +1,10 @@
 [package]
 name = "ngx-strict-sni"
-version = "1.0.0-dev"
+version = "1.0.0"
 authors = ["JyJyJcr <82190170+JyJyJcr@users.noreply.github.com>"]
 edition = "2021"
 homepage = "https://github.com/JyJyJcr/ngx-strict-sni"
-description = "An Nginx module strictly validating SNI == Host."
+description = "Strict SNI validator for Nginx"
 
 [lib]
 crate-type = ["cdylib"]
@@ -26,5 +26,4 @@ assets = [
 maintainer-scripts = "debian/scripts"
 
 extended-description = """\
-Nginx doesn't and won't check the integrity of SNI and Host header.
-This module adds the validation stage of them, and when the request violate the rule, return Status 421 Misdirected Request."""
+The ngx_http_ssl_strict_sni module is a validator of the integrity of SNI and the Host header. This blocks "SNI spoofing" to virtual hosts. Without ssl, this module has no effects."""
