@@ -135,6 +135,7 @@ jobs:
           path: cicd/target/debian12_arm64
       - name: (apt) import gpg
         run: |
+          export GPG_TTY=$(tty)
           echo -n "$GPG_SECRET_SUBKEY_64" | base64 -d |gpg --import
           gpg --list-keys --keyid-format long
         env:
