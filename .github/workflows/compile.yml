@@ -104,6 +104,7 @@ jobs:
       name: publish
     permissions:
       contents: write
+      actions: write
     if: startsWith(github.ref,'refs/tags/v')
     steps:
       - name: checkout
@@ -117,8 +118,8 @@ jobs:
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
       - name: merge tagged commit to publish
         run: |
-          git branch main ${{github.ref_name}}
-          git merge main -m "ci: catch up to ${{github.ref_name}}"
+          # git branch main ${{github.ref_name}}
+          git merge ${{github.ref_name}} -m "ci: catch up to ${{github.ref_name}}"
       - name: (apt) install reprepro and dpkg-sig
         run: |
           sudo apt-get -y install reprepro dpkg-sig
