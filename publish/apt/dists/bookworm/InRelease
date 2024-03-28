@@ -5,7 +5,7 @@ Origin: https://github.com/JyJyJcr/ngx-strict-sni
 Label: ngx-strict-sni+debian12
 Suite: stable
 Codename: bookworm
-Date: Thu, 28 Mar 2024 18:13:55 UTC
+Date: Thu, 28 Mar 2024 18:32:12 UTC
 Architectures: amd64 arm64
 Components: main
 Description: apt repository for ngx-strict-sni
@@ -32,8 +32,8 @@ SHA256:
  3e8694bf3f11ed45eb279b4c9acde9fc53a09df2ea39b2a1f9d539f2692c324f 180 main/binary-arm64/Release
 -----BEGIN PGP SIGNATURE-----
 
-iHUEARYIAB0WIQQ8KIz285F9wy7YYFZVxfa6rO6pUQUCZgWzYwAKCRBVxfa6rO6p
-UWciAP9hFFdSCNAKJ6zseHkrqgiAVRo2ydWoaa6WZ9JYJk6BSgEAtG9W4PEU8HWg
-nwZNrPPy+veKcsAPCzJrQ0jo2Efs+wY=
-=jGsO
+iHUEARYIAB0WIQQ8KIz285F9wy7YYFZVxfa6rO6pUQUCZgW3rAAKCRBVxfa6rO6p
+UdGCAP9PUtdgg9R3m7vnfT/bZrbP9oibb8rrvuUMM+aFMX+0RgEAlaNf1nKX1MuN
+2SqfCQo01Rg4UyUB5ZZ2X+nvtwFRsgQ=
+=iupX
 -----END PGP SIGNATURE-----

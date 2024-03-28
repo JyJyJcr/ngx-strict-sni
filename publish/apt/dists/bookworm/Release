@@ -2,7 +2,7 @@ Origin: https://github.com/JyJyJcr/ngx-strict-sni
 Label: ngx-strict-sni+debian12
 Suite: stable
 Codename: bookworm
-Date: Thu, 28 Mar 2024 18:13:55 UTC
+Date: Thu, 28 Mar 2024 18:32:12 UTC
 Architectures: amd64 arm64
 Components: main
 Description: apt repository for ngx-strict-sni
