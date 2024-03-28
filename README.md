@@ -77,8 +77,15 @@ This explanation is written based on the article below:
 
 Currently, only the apt repository for debian bookworm is available. The package name is changed to `libnginx-mod-http-ssl-strict-sni` following the standard name style of Nginx modules.
 
+### Debian
+
+> [!IMPORTANT]
+> 2024/03/28: PGP repository signature is added! Existing user should update their apt configuration.
+
 ```bash
-sudo echo "deb [trusted=yes] https://jyjyjcr.github.io/ngx-strict-sni/publish/apt bookworm main" > "/etc/apt/sources.list.d/ngx-strict-sni.list"
+sudo mkdir -p /usr/local/share/keyrings/
+curl -fsSL https://jyjyjcr.github.io/ngx-strict-sni/publish/apt/gpg.key.asc | sudo gpg --dearmor -o /usr/local/share/keyrings/ngx-strict-sni.gpg
+sudo echo "deb [signed-by=/usr/local/share/keyrings/ngx-strict-sni.gpg] https://jyjyjcr.github.io/ngx-strict-sni/publish/apt bookworm main" > "/etc/apt/sources.list.d/ngx-strict-sni.list"
 sudo apt update
 sudo apt install libnginx-mod-http-ssl-strict-sni
 ```
