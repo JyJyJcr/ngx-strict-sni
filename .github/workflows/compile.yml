@@ -115,10 +115,10 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-      - name: merge main to publish
+      - name: merge tagged commit to publish
         run: |
-          git branch main origin/main
-          git merge main -m "ci: catch up to main"
+          git branch main origin/${{github.ref_name}}
+          git merge main -m "ci: catch up to ${{github.ref_name}}"
       - name: (apt) install reprepro and dpkg-sig
         run: |
           sudo apt-get -y install reprepro dpkg-sig
