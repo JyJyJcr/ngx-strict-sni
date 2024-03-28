@@ -137,16 +137,18 @@ jobs:
         uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.APT_GPG_SECRET_KEY }}
-          passphrase: ${{ secrets.APT_GPG_PASSPHRASE }}
+      - name: (apt) spect gpg
+        run: |
+          gpg --list-key 3C288CF6F3917DC32ED8605655C5F6BAACEEA951
       - name: (apt) create repository
         run: |
           cd publish/apt
           for lib in $(ls ../../cicd/target/debian12_amd64 |grep -E '\.deb');do
-            dpkg-sig -k 15A507B26EC4B2A2 --sign builder "../../cicd/target/debian12_amd64/$lib"
+            # dpkg-sig -k 3C288CF6F3917DC32ED8605655C5F6BAACEEA951 --sign builder "../../cicd/target/debian12_amd64/$lib"
             reprepro includedeb bookworm "../../cicd/target/debian12_amd64/$lib"
           done
           for lib in $(ls ../../cicd/target/debian12_arm64 |grep -E '\.deb');do
-            dpkg-sig -k 15A507B26EC4B2A2 --sign builder "../../cicd/target/debian12_arm64/$lib"
+            # dpkg-sig -k 3C288CF6F3917DC32ED8605655C5F6BAACEEA951 --sign builder "../../cicd/target/debian12_arm64/$lib"
             reprepro includedeb bookworm "../../cicd/target/debian12_arm64/$lib"
           done
           reprepro export
