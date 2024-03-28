@@ -81,6 +81,8 @@ Currently, only the apt repository for Debian is available. The package name is 
 
 Supported Codename: `bullseye`, `bookworm`
 
+Supported Architecture: `arm64`, `amd64`
+
 > [!IMPORTANT]
 > 2024/03/28: PGP repository signature is added! Existing user should update their apt configuration.
 
