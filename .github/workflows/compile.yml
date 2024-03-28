@@ -25,18 +25,30 @@ jobs:
             ngx: 1.25.4
             host: macos-13
             docker: false
+          - name: debian11_arm64
+            triple: aarch64-unknown-linux-gnu
+            ngx: 1.18.0
+            host: ubuntu-latest
+            docker: true
+            dockerver: 2
+          - name: debian11_amd64
+            triple: x86_64-unknown-linux-gnu
+            ngx: 1.18.0
+            host: ubuntu-latest
+            docker: true
+            dockerver: 2
           - name: debian12_arm64
             triple: aarch64-unknown-linux-gnu
             ngx: 1.22.1
             host: ubuntu-latest
             docker: true
-            dockerver: 1
+            dockerver: 2
           - name: debian12_amd64
             triple: x86_64-unknown-linux-gnu
             ngx: 1.22.1
             host: ubuntu-latest
             docker: true
-            dockerver: 1
+            dockerver: 2
     steps:
       - name: checkout
         uses: actions/checkout@v4

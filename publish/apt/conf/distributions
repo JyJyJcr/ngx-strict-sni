@@ -1,6 +1,6 @@
 Origin: https://github.com/JyJyJcr/ngx-strict-sni
 Label: ngx-strict-sni
-Codename: bookworm
+Codename: bookworm bullseye
 Suite: stable
 Architectures: amd64 arm64
 Components: main
