@@ -1,2 +1,2 @@
 #!/bin/sh
-cargo deb --variant 12
+cargo deb --variant debian12

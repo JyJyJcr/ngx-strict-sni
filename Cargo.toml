@@ -28,14 +28,14 @@ maintainer-scripts = "os/debian/scripts"
 extended-description = """\
 The ngx_http_ssl_strict_sni module is a validator of the integrity of SNI and the Host header. This blocks "SNI spoofing" to virtual hosts. Without ssl, this module has no effects."""
 
-[package.metadata.deb.variants.13]
-depends = ["$auto","nginx-abi-1.24.0-1"]
-
-[package.metadata.deb.variants.12]
+[package.metadata.deb.variants.debian12]
 depends = ["$auto","nginx-abi-1.22.1-7"]
 
-[package.metadata.deb.variants.11]
+[package.metadata.deb.variants.debian11]
 depends = ["$auto","nginx-common (= 1.18.0-6.1+deb11u3)"]
+
+[package.metadata.deb.variants.ubuntu22]
+depends = ["$auto","nginx-common (= 1.18.0-6ubuntu14.4)"]
 
 
 
