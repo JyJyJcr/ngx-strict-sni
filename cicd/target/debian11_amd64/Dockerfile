@@ -4,5 +4,6 @@ RUN apt-get -y update
 RUN apt-get -y install curl build-essential libclang-dev
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 ENV PATH $PATH:$HOME/.cargo/bin
+RUN . "$HOME/.cargo/env"
 RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
 RUN cargo binstall -y cargo-deb
