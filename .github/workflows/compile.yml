@@ -154,11 +154,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: deb+*
-          name: deb+debian11_amd64
           path: ./
       - name: (apt) create repository
         run: |
           cd publish/apt
+          rm -r dists
+          rm -r pool
           for deb in $(ls ../../ |grep -E '\.deb$');do
             # dpkg-sig -k 3C288CF6F3917DC32ED8605655C5F6BAACEEA951 --sign builder "../../$deb"
             reprepro includedeb "$(cat ../../$deb.codename)" "../../$deb"
