@@ -1,4 +1,4 @@
-FROM arm64v8/debian:12
+FROM arm64v8/debian:12.5-slim
 #ver 2 (MUST INCREASE WHEN CHANGED!!! and compile.yml!!!)
 RUN apt-get -y update
 RUN apt-get -y install curl build-essential libclang-dev
