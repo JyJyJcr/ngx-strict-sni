@@ -147,9 +147,6 @@ jobs:
         uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.APT_GPG_SECRET_KEY }}
-      - name: (apt) spect gpg
-        run: |
-          gpg --list-key 3C288CF6F3917DC32ED8605655C5F6BAACEEA951
       - name: (apt) download .deb
         uses: actions/download-artifact@v4
         with:
@@ -159,14 +156,14 @@ jobs:
       - name: (apt) create repository
         run: |
           cd publish/apt
-          rm -r dists
-          rm -r pool
+          rm -rf dists
+          rm -rf pool
           for deb in $(ls ../../ |grep -E '\.deb$');do
             # dpkg-sig -k 3C288CF6F3917DC32ED8605655C5F6BAACEEA951 --sign builder "../../$deb"
             reprepro includedeb "$(cat ../../$deb.codename)" "../../$deb"
           done
           reprepro export
-          rm -r db
+          rm -rf db
           cd -
           git add ./publish/apt/
           git commit -m "ci: generate/update debian repository"
