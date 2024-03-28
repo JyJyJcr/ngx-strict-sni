@@ -1,6 +1,6 @@
 Archive: stable
 Component: main
 Origin: https://github.com/JyJyJcr/ngx-strict-sni
-Label: ngx-strict-sni+debian12
+Label: ngx-strict-sni
 Architecture: amd64
 Description: apt repository for ngx-strict-sni
