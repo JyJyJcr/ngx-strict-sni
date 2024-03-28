@@ -16,7 +16,7 @@ ngx = { git = "https://github.com/JyJyJcr/ngx-rust",branch="ngx_install_dir" }
 name = "libnginx-mod-http-ssl-strict-sni"
 section="httpd"
 priority="optional"
-depends = ["$auto","nginx-abi-1.22.1-7"]
+depends = ["$auto"]
 recommends = "nginx"
 
 assets = [
@@ -27,3 +27,19 @@ maintainer-scripts = "os/debian/scripts"
 
 extended-description = """\
 The ngx_http_ssl_strict_sni module is a validator of the integrity of SNI and the Host header. This blocks "SNI spoofing" to virtual hosts. Without ssl, this module has no effects."""
+
+[package.metadata.deb.variants.debian12]
+depends = ["$auto","nginx-abi-1.22.1-7"]
+revision = "1+deb12"
+
+[package.metadata.deb.variants.debian11]
+depends = ["$auto","nginx-common (= 1.18.0-6.1+deb11u3)"]
+revision = "1+deb11"
+
+[package.metadata.deb.variants.ubuntu22]
+depends = ["$auto","nginx-common (= 1.18.0-6ubuntu14.4)"]
+revision = "1+ubu22"
+
+
+
+

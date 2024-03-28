@@ -18,25 +18,43 @@ jobs:
           - name: osx_arm64
             triple: aarch64-apple-darwin
             ngx: 1.25.4
+            compat: false
             host: macos-14
             docker: false
           - name: osx_amd64
             triple: x86_64-apple-darwin
             ngx: 1.25.4
+            compat: false
             host: macos-13
             docker: false
+          - name: debian11_arm64
+            triple: aarch64-unknown-linux-gnu
+            ngx: 1.18.0
+            compat: true
+            host: ubuntu-latest
+            docker: true
+            dockerver: 2
+          - name: debian11_amd64
+            triple: x86_64-unknown-linux-gnu
+            ngx: 1.18.0
+            compat: true
+            host: ubuntu-latest
+            docker: true
+            dockerver: 2
           - name: debian12_arm64
             triple: aarch64-unknown-linux-gnu
             ngx: 1.22.1
+            compat: false
             host: ubuntu-latest
             docker: true
-            dockerver: 1
+            dockerver: 2
           - name: debian12_amd64
             triple: x86_64-unknown-linux-gnu
             ngx: 1.22.1
+            compat: false
             host: ubuntu-latest
             docker: true
-            dockerver: 1
+            dockerver: 2
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -75,7 +93,7 @@ jobs:
           --rm -i -v $PWD:/repo runner:latest bash <<'EOF'
           set -xeu
           cd /repo
-          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ matrix.mode.tr }}
+          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ matrix.mode.tr }} ${{ matrix.target.compat && 'compat' || 'incompat' }}
           EOF
           sudo chown -R "$(id -u $USER):$(id -g $USER)" .
         if: ${{matrix.target.docker}}
@@ -94,7 +112,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: deb+${{ matrix.target.name }}
-          path: target/debian/*.deb
+          path: |
+            target/debian/*.deb
+            target/debian/*.deb.codename
         if: matrix.mode.bool && startsWith(matrix.target.name,'debian')
   publish:
     name: publish binary and package
@@ -123,17 +143,6 @@ jobs:
       - name: (apt) install reprepro and dpkg-sig
         run: |
           sudo apt-get -y install reprepro dpkg-sig
-      - name: (apt) download .deb from debian12_amd64
-        id: dl-debian12_amd64
-        uses: actions/download-artifact@v4
-        with:
-          name: deb+debian12_amd64
-          path: cicd/target/debian12_amd64
-      - name: (apt) download .deb from debian12_arm64
-        uses: actions/download-artifact@v4
-        with:
-          name: deb+debian12_arm64
-          path: cicd/target/debian12_arm64
       - name: (apt) import gpg
         uses: crazy-max/ghaction-import-gpg@v6
         with:
@@ -141,16 +150,18 @@ jobs:
       - name: (apt) spect gpg
         run: |
           gpg --list-key 3C288CF6F3917DC32ED8605655C5F6BAACEEA951
+      - name: (apt) download .deb
+        uses: actions/download-artifact@v4
+        with:
+          pattern: deb+*
+          name: deb+debian11_amd64
+          path: ./
       - name: (apt) create repository
         run: |
           cd publish/apt
-          for lib in $(ls ../../cicd/target/debian12_amd64 |grep -E '\.deb');do
-            # dpkg-sig -k 3C288CF6F3917DC32ED8605655C5F6BAACEEA951 --sign builder "../../cicd/target/debian12_amd64/$lib"
-            reprepro includedeb bookworm "../../cicd/target/debian12_amd64/$lib"
-          done
-          for lib in $(ls ../../cicd/target/debian12_arm64 |grep -E '\.deb');do
-            # dpkg-sig -k 3C288CF6F3917DC32ED8605655C5F6BAACEEA951 --sign builder "../../cicd/target/debian12_arm64/$lib"
-            reprepro includedeb bookworm "../../cicd/target/debian12_arm64/$lib"
+          for deb in $(ls ../../ |grep -E '\.deb$');do
+            # dpkg-sig -k 3C288CF6F3917DC32ED8605655C5F6BAACEEA951 --sign builder "../../$deb"
+            reprepro includedeb "$(cat ../../$deb.codename)" "../../$deb"
           done
           reprepro export
           rm -r db

@@ -23,6 +23,12 @@ else
     is_release=no
 fi
 
+if [ "$5" = "compat" ];then
+    is_compat=yes
+else
+    is_compat=no
+fi
+
 # # install
 # echo install
 # if [ "$(uname -s)" = 'Darwin' ];then
@@ -41,15 +47,15 @@ fi
 #     exit 3
 # fi
 
-# install rust
-echo install rust
-if ! which cargo; then
-    export PATH="${HOME}/.cargo/bin:$PATH"
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-fi
-if [ $? -ne 0 ];then
-    exit 4
-fi
+# # install rust
+# echo install rust
+# if ! which cargo; then
+#     export PATH="${HOME}/.cargo/bin:$PATH"
+#     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+# fi
+# if [ $? -ne 0 ];then
+#     exit 4
+# fi
 
 if rustup default|grep $triple;then
     ign_triple=yes
@@ -60,6 +66,10 @@ fi
 # build
 echo build
 export NGX_VERSION="$ngxver"
+if [ "$is_compat" = "yes" ];then
+    export OPENSSL_VERSION="1.1.1w"
+    export PCRE2_VERSION=8.45
+fi
 cargo update
 if [ "$ign_triple" = "yes" ];then
     cargo build --release
