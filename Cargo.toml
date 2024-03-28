@@ -30,12 +30,15 @@ The ngx_http_ssl_strict_sni module is a validator of the integrity of SNI and th
 
 [package.metadata.deb.variants.debian12]
 depends = ["$auto","nginx-abi-1.22.1-7"]
+revision = "1+deb12"
 
 [package.metadata.deb.variants.debian11]
 depends = ["$auto","nginx-common (= 1.18.0-6.1+deb11u3)"]
+revision = "1+deb11"
 
 [package.metadata.deb.variants.ubuntu22]
 depends = ["$auto","nginx-common (= 1.18.0-6ubuntu14.4)"]
+revision = "1+ubu22"
 
 
 

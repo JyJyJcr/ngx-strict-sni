@@ -1,2 +1,2 @@
 #!/bin/sh
-cargo deb --variant debian11
+cicd/common/debgen.sh debian11

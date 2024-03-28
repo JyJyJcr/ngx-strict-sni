@@ -1,2 +1,2 @@
 #!/bin/sh
-cargo deb --variant debian12
+cicd/common/debgen.sh debian12

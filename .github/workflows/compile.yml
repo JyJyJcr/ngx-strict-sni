@@ -112,7 +112,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: deb+${{ matrix.target.name }}
-          path: target/debian/*.deb
+          path: |
+            target/debian/*.deb
+            target/debian/*.deb.codename
         if: matrix.mode.bool && startsWith(matrix.target.name,'debian')
   publish:
     name: publish binary and package
@@ -141,17 +143,6 @@ jobs:
       - name: (apt) install reprepro and dpkg-sig
         run: |
           sudo apt-get -y install reprepro dpkg-sig
-      - name: (apt) download .deb from debian12_amd64
-        id: dl-debian12_amd64
-        uses: actions/download-artifact@v4
-        with:
-          name: deb+debian12_amd64
-          path: cicd/target/debian12_amd64
-      - name: (apt) download .deb from debian12_arm64
-        uses: actions/download-artifact@v4
-        with:
-          name: deb+debian12_arm64
-          path: cicd/target/debian12_arm64
       - name: (apt) import gpg
         uses: crazy-max/ghaction-import-gpg@v6
         with:
@@ -159,16 +150,18 @@ jobs:
       - name: (apt) spect gpg
         run: |
           gpg --list-key 3C288CF6F3917DC32ED8605655C5F6BAACEEA951
+      - name: (apt) download .deb
+        uses: actions/download-artifact@v4
+        with:
+          pattern: deb+*
+          name: deb+debian11_amd64
+          path: ./
       - name: (apt) create repository
         run: |
           cd publish/apt
-          for lib in $(ls ../../cicd/target/debian12_amd64 |grep -E '\.deb');do
-            # dpkg-sig -k 3C288CF6F3917DC32ED8605655C5F6BAACEEA951 --sign builder "../../cicd/target/debian12_amd64/$lib"
-            reprepro includedeb bookworm "../../cicd/target/debian12_amd64/$lib"
-          done
-          for lib in $(ls ../../cicd/target/debian12_arm64 |grep -E '\.deb');do
-            # dpkg-sig -k 3C288CF6F3917DC32ED8605655C5F6BAACEEA951 --sign builder "../../cicd/target/debian12_arm64/$lib"
-            reprepro includedeb bookworm "../../cicd/target/debian12_arm64/$lib"
+          for deb in $(ls ../../ |grep -E '\.deb$');do
+            # dpkg-sig -k 3C288CF6F3917DC32ED8605655C5F6BAACEEA951 --sign builder "../../$deb"
+            reprepro includedeb "$(cat ../../$deb.codename)" "../../$deb"
           done
           reprepro export
           rm -r db
