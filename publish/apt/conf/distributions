@@ -5,4 +5,4 @@ Suite: stable
 Architectures: amd64 arm64
 Components: main
 Description: apt repository for ngx-strict-sni
-SignWith: 15A507B26EC4B2A2
+SignWith: 3C288CF6F3917DC32ED8605655C5F6BAACEEA951
