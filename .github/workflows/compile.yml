@@ -154,6 +154,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: deb+*
+          merge-multiple: true
           path: ./
       - name: (apt) create repository
         run: |
