@@ -109,7 +109,7 @@ mod tests {
         nginx
             .create_config_from_str(
                 "load_module.conf",
-                "load_module modules/libngx_strict_sni.dylib;",
+                format!("load_module modules/{};", module_basename).as_str(),
             )
             .expect(format!("Unable to create config file").as_str());
 
