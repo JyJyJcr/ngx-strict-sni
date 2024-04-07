@@ -1,10 +1,7 @@
 #[cfg(test)]
 mod tests {
-    use ngx::test_util::Nginx;
-    use std::{
-        env::{consts::*, current_dir},
-        path::PathBuf,
-    };
+    use ngx::test_util::{target_path, Nginx};
+    use std::env::{consts::*, current_dir};
 
     const TEST_NGINX_CONFIG: &str = "tests/nginx.conf";
 
@@ -20,7 +17,7 @@ mod tests {
             env!("CARGO_PKG_NAME").replace('-', "_"),
             DLL_SUFFIX
         );
-        let module_path: PathBuf = current_dir.join("target/debug").join(module_basename);
+        let module_path = target_path(&module_basename).expect("target dir not found");
 
         assert!(
             test_config_path.is_file(),
