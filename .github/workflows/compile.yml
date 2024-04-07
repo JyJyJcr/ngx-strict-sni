@@ -103,8 +103,8 @@ jobs:
         with:
           name: deb+${{ matrix.target.name }}
           path: |
-            target/debian/*.deb
-            target/debian/*.deb.codename
+            target/${{matrix.target.triple}}/debian/*.deb
+            target/${{matrix.target.triple}}/debian/*.deb.codename
         if: matrix.mode.bool && startsWith(matrix.target.name,'debian')
   publish:
     name: publish binary and package
