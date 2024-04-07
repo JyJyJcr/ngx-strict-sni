@@ -10,8 +10,8 @@ description = "Strict SNI validator for Nginx"
 crate-type = ["cdylib"]
 
 [dependencies]
-#ngx = { git = "https://github.com/JyJyJcr/ngx-rust",branch="master" }
-ngx = { path = "../ngx-rust"}
+ngx = { git = "https://github.com/JyJyJcr/ngx-rust",branch="integ_test" }
+#ngx = { path = "../ngx-rust"}
 
 
 [dev-dependencies]
