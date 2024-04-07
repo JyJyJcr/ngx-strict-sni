@@ -12,7 +12,6 @@ jobs:
       matrix:
         mode:
           - tr: ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
-            dr: ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'debug' }}
             bool: ${{ startsWith(github.ref,'refs/tags/v') }}
         target:
           - name: osx_arm64
