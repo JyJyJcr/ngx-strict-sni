@@ -12,7 +12,6 @@ jobs:
       matrix:
         mode:
           - tr: ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
-            dr: ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'debug' }}
             bool: ${{ startsWith(github.ref,'refs/tags/v') }}
         target:
           - name: osx_arm64
@@ -96,15 +95,15 @@ jobs:
         with:
           name: raw+${{ matrix.target.name }}
           path: |
-            .nginx/${{matrix.target.ngx}}/${{matrix.target.triple}}/*.so
-            .nginx/${{matrix.target.ngx}}/${{matrix.target.triple}}/*.dylib
+            target/${{matrix.target.triple}}/release/*.so
+            target/${{matrix.target.triple}}/release/*.dylib
       - name: deb upload
         uses: actions/upload-artifact@v4
         with:
           name: deb+${{ matrix.target.name }}
           path: |
-            target/debian/*.deb
-            target/debian/*.deb.codename
+            target/${{matrix.target.triple}}/debian/*.deb
+            target/${{matrix.target.triple}}/debian/*.deb.codename
         if: matrix.mode.bool && startsWith(matrix.target.name,'debian')
   publish:
     name: publish binary and package

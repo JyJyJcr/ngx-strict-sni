@@ -2,7 +2,7 @@
 set -xeu
 
 # validate
-echo vaildate
+echo "[VALIDATE]"
 if [ -z "$1" ];then
     exit 1
 else
