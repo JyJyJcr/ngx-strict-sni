@@ -1,2 +1,2 @@
 #!/bin/sh
-cicd/common/debgen.sh debian11
+cicd/common/debgen.sh debian11 "$2"

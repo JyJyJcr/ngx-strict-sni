@@ -18,43 +18,33 @@ jobs:
           - name: osx_arm64
             triple: aarch64-apple-darwin
             ngx: 1.25.4
-            compat: false
             host: macos-14
             docker: false
           - name: osx_amd64
             triple: x86_64-apple-darwin
             ngx: 1.25.4
-            compat: false
             host: macos-13
             docker: false
           - name: debian11_arm64
             triple: aarch64-unknown-linux-gnu
             ngx: 1.18.0
-            compat: true
             host: ubuntu-latest
             docker: true
-            dockerver: 2
           - name: debian11_amd64
             triple: x86_64-unknown-linux-gnu
             ngx: 1.18.0
-            compat: true
             host: ubuntu-latest
             docker: true
-            dockerver: 2
           - name: debian12_arm64
             triple: aarch64-unknown-linux-gnu
             ngx: 1.22.1
-            compat: false
             host: ubuntu-latest
             docker: true
-            dockerver: 2
           - name: debian12_amd64
             triple: x86_64-unknown-linux-gnu
             ngx: 1.22.1
-            compat: false
             host: ubuntu-latest
             docker: true
-            dockerver: 2
     steps:
       - name: checkout
         uses: actions/checkout@v4
@@ -65,7 +55,7 @@ jobs:
             ${{ github.workspace }}/.cache/src
             ${{ github.workspace }}/.nginx
             ${{ github.workspace }}/target
-          key: src+${{matrix.target.name}}+${{matrix.target.ngx}}+${{ github.run_id }}
+          key: src+${{matrix.target.name}}+${{matrix.target.ngx}}+${{github.run_id}}
           restore-keys: src+${{matrix.target.name}}+${{matrix.target.ngx}}+
       - name: prepare docker on qemu
         uses: docker/setup-qemu-action@v3
@@ -75,8 +65,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: .docker
-          key: docker+${{matrix.target.name}}+${{matrix.target.ngx}}+${{matrix.target.dockerver}}+${{ github.run_id }}
-          restore-keys: docker+${{matrix.target.name}}+${{matrix.target.ngx}}+${{matrix.target.dockerver}}+
+          key: docker+${{matrix.target.name}}+${{matrix.target.ngx}}+${{ hashFiles(format('cicd/target/{0}/Dockerfile', matrix.target.name)) }}+${{ github.run_id }}
+          restore-keys: docker+${{matrix.target.name}}+${{matrix.target.ngx}}+${{ hashFiles(format('cicd/target/{0}/Dockerfile', matrix.target.name)) }}+
         if: matrix.target.docker
       - name: load docker image
         run: docker load --input .docker/runner.tar
@@ -93,7 +83,7 @@ jobs:
           --rm -i -v $PWD:/repo runner:latest bash <<'EOF'
           set -xeu
           cd /repo
-          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ matrix.mode.tr }} ${{ matrix.target.compat && 'compat' || 'incompat' }}
+          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ matrix.mode.tr }}
           EOF
           sudo chown -R "$(id -u $USER):$(id -g $USER)" .
         if: ${{matrix.target.docker}}
