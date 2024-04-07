@@ -5,7 +5,6 @@ authors = ["JyJyJcr <82190170+JyJyJcr@users.noreply.github.com>"]
 edition = "2021"
 homepage = "https://github.com/JyJyJcr/ngx-strict-sni"
 description = "Strict SNI validator for Nginx"
-build = "build.rs"
 
 [lib]
 crate-type = ["cdylib"]
