@@ -10,7 +10,7 @@ The ngx_http_ssl_strict_sni module is a validator of the integrity of SNI and th
 
 Nginx doesn't and won't check the integrity of SNI and Host header, resulting to allowing "SNI spoofing" between virtual hosts.
 
-Example: let two virtual host `aaa.com` and `bbb.com` listen on 443 as https servers with their names.
+Reproduction: let two virtual host `aaa.com` and `bbb.com` listen on 443 as https servers with their names.
 
 `nginx.conf`:
 
@@ -28,19 +28,19 @@ server{
 }
 ```
 
-`/srv/www/com.aaa/foo.txt`
+`/srv/www/com.aaa/foo.txt`:
 
 ```html
 Here is aaa.com.
 ```
 
-`/srv/www/com.bbb/foo.txt`
+`/srv/www/com.bbb/foo.txt`:
 
 ```html
 Here is bbb.com.
 ```
 
-By normal requests, we get `/foo.txt` of the server specified in domain:
+With normal requests, we get `/foo.txt` in the server specified in the domain:
 
 ```bash
 $ curl https://aaa.com/foo.txt
@@ -56,7 +56,7 @@ $ curl -H "Host: aaa.com" https://bbb.com/foo.txt
 Here is aaa.com. # <-- intruded!
 ```
 
-This module adds the validatior of SNI and Host header, and when the request violate the rule, return Status 421 Misdirected Request:
+This module adds the validation step of SNI and Host header, and when the request violate the rule, it immediately return Status 421 Misdirected Request:
 
 ```bash
 $ curl -H "Host: bbb.com" https://aaa.com/foo.txt
@@ -84,7 +84,10 @@ Supported Codename: `bullseye`, `bookworm`
 Supported Architecture: `arm64`, `amd64`
 
 > [!IMPORTANT]
-> 2024/03/28: PGP repository signature is added! Existing user should update their apt configuration.
+> 2024/03/28: PGP repository signature added! Existing user should update their apt configuration.
+
+> [!IMPORTANT]
+> 2024/04/13: Repository URL changed! Existing user should update the URL written in `ngx-strict-sni.list`.
 
 ```bash
 curl -fsSL https://jyjyjcr.github.io/ngx-strict-sni/publish/gpg.key.asc | sudo gpg --dearmor -o /etc/apt/keyrings/ngx-strict-sni.gpg
@@ -126,3 +129,7 @@ http {
     }
 }
 ```
+
+## Technology
+
+This module is written in Rust using [ngx](https://crates.io/crates/ngx/0.4.1) crate. The original repository is [here](https://github.com/nginxinc/ngx-rust), and the modified one is [here](https://github.com/JyJyJcr/ngx-rust/tree/integ_test_inuse).

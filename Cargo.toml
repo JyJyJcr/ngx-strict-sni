@@ -1,8 +1,9 @@
 [package]
 name = "ngx-strict-sni"
-version = "1.0.3-dev"
+version = "1.0.3"
 authors = ["JyJyJcr <82190170+JyJyJcr@users.noreply.github.com>"]
 edition = "2021"
+license = "WTFPL"
 homepage = "https://github.com/JyJyJcr/ngx-strict-sni"
 description = "Strict SNI validator for Nginx"
 
@@ -33,6 +34,12 @@ maintainer-scripts = "os/debian/scripts"
 extended-description = """\
 The ngx_http_ssl_strict_sni module is a validator of the integrity of SNI and the Host header. This blocks "SNI spoofing" to virtual hosts. Without ssl, this module has no effects."""
 
+
+# revision format
+# let main revision num to be %
+# debian: %+deb<deb ver>
+# ubuntu: 0ubuntu%
+
 [package.metadata.deb.variants.debian12]
 depends = ["$auto","nginx-abi-1.22.1-7"]
 revision = "1+deb12"
@@ -43,7 +50,7 @@ revision = "1+deb11"
 
 [package.metadata.deb.variants.ubuntu22]
 depends = ["$auto","nginx-common (= 1.18.0-6ubuntu14.4)"]
-revision = "1+ubu22"
+revision = "0ubuntu1"
 
 
 
