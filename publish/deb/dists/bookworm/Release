@@ -1,0 +1,29 @@
+Origin: https://github.com/JyJyJcr/ngx-strict-sni
+Label: ngx-strict-sni
+Suite: stable
+Codename: bookworm
+Date: Fri, 12 Apr 2024 19:33:40 UTC
+Architectures: amd64 arm64
+Components: main
+Description: apt repository for ngx-strict-sni
+MD5Sum:
+ c8dbbf1ac850bf5c02d45f7e820f1ba7 836 main/binary-amd64/Packages
+ d7169bdf4d926ed6a81c4c157547650f 543 main/binary-amd64/Packages.gz
+ 3549a8f8313166f7bc0e8121b24770de 171 main/binary-amd64/Release
+ a7575669719a145573a6d8ea5bdf26c3 836 main/binary-arm64/Packages
+ 0fd5b462f5886dd6867b4ca8e43b97f1 541 main/binary-arm64/Packages.gz
+ 3c952b308d05cfb35870387a1c8f259d 171 main/binary-arm64/Release
+SHA1:
+ d720cff712e3ad8c0c006f5fbef00642547bc3f5 836 main/binary-amd64/Packages
+ 5639fb45acf46feab0c617f38f5493681cb13dc3 543 main/binary-amd64/Packages.gz
+ 54c29f6ff2d0e7730e0d0392a2d356943834f1fe 171 main/binary-amd64/Release
+ c0993671e0a5a0982b8d3de00aab36c51889dbbc 836 main/binary-arm64/Packages
+ b84fe9dee301c88fe4f12c4f9c4ea59522989473 541 main/binary-arm64/Packages.gz
+ cf9cb9757be2e0ba1faa14ac701bba05f5e8dead 171 main/binary-arm64/Release
+SHA256:
+ b4b8be271de174fab61aaf48a2e947aa797cd245ac307c0bd82fa7ac65b0afad 836 main/binary-amd64/Packages
+ ee4e38fba729fb44bc29f4a0c7d6760e05e7ea0fc2a565397065683fb6c5e1e1 543 main/binary-amd64/Packages.gz
+ e41c2c68944ec526062e1e9da9723b73229fd0fafc7276edd6e898ab1642a38a 171 main/binary-amd64/Release
+ 28fc0439caaf814b1790c8a4dcb35dac76de72c0fceae56378a8e347dab76d31 836 main/binary-arm64/Packages
+ 331cef1f35c4ed929078c58c3dc35280dffa867f6d5c90331bff58561d4f00c3 541 main/binary-arm64/Packages.gz
+ 5596d3113a2e08d8a71001f84458664b3b68e5b995dbfd1a92cd682bfe79c754 171 main/binary-arm64/Release
