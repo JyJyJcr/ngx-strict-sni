@@ -87,7 +87,7 @@ Supported Architecture: `arm64`, `amd64`
 > 2024/03/28: PGP repository signature is added! Existing user should update their apt configuration.
 
 ```bash
-curl -fsSL https://jyjyjcr.github.io/ngx-strict-sni/publish/deb/gpg.key.asc | sudo gpg --dearmor -o /etc/apt/keyrings/ngx-strict-sni.gpg
+curl -fsSL https://jyjyjcr.github.io/ngx-strict-sni/publish/gpg.key.asc | sudo gpg --dearmor -o /etc/apt/keyrings/ngx-strict-sni.gpg
 sudo echo "deb [signed-by=/etc/apt/keyrings/ngx-strict-sni.gpg] https://jyjyjcr.github.io/ngx-strict-sni/publish/deb $(cat /etc/os-release|grep VERSION_CODENAME|sed -e 's/^.*=//g') main" > "/etc/apt/sources.list.d/ngx-strict-sni.list"
 sudo apt update
 sudo apt install libnginx-mod-http-ssl-strict-sni
