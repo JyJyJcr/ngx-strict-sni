@@ -50,7 +50,7 @@ jobs:
     steps:
       - name: checkout
         uses: actions/checkout@v4
-      - name: cache
+      - name: set build cache
         uses: actions/cache@v4
         with:
           path: |
@@ -70,7 +70,7 @@ jobs:
           key: docker+${{matrix.target.name}}+${{matrix.target.ngx}}+${{ hashFiles(format('cicd/target/{0}/Dockerfile', matrix.target.name)) }}+${{ github.run_id }}
           restore-keys: docker+${{matrix.target.name}}+${{matrix.target.ngx}}+${{ hashFiles(format('cicd/target/{0}/Dockerfile', matrix.target.name)) }}+
         if: matrix.target.docker
-      - name: load docker image
+      - name: load docker image if exist
         run: docker load --input .docker/runner.tar
         if: matrix.target.docker && steps.restore-docker-image.outputs.cache-hit
       - name: build and save docker image if not exist
@@ -79,7 +79,7 @@ jobs:
           mkdir -p .docker
           docker save --output .docker/runner.tar "runner:latest"
         if: matrix.target.docker && (! steps.restore-docker-image.outputs.cache-hit)
-      - name: run in docker
+      - name: build raw in docker
         run: |
           docker run \
           --rm -i -v $PWD:/repo runner:latest bash <<'EOF'
@@ -89,18 +89,18 @@ jobs:
           EOF
           sudo chown -R "$(id -u $USER):$(id -g $USER)" .
         if: ${{matrix.target.docker}}
-      - name: run in real
+      - name: build raw on bare-metal
         run: |
           cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ matrix.const.as_r && 'release'|| 'test' }}
         if: ${{!matrix.target.docker}}
-      - name: raw upload
+      - name: upload raw
         uses: actions/upload-artifact@v4
         with:
           name: raw+${{ matrix.target.name }}
           path: |
             target/${{matrix.target.triple}}/release/*.so
             target/${{matrix.target.triple}}/release/*.dylib
-      - name: deb upload
+      - name: upload deb
         uses: actions/upload-artifact@v4
         with:
           name: deb+${{ matrix.target.name }}
@@ -109,7 +109,7 @@ jobs:
             target/${{matrix.target.triple}}/debian/*.deb.codename
         if: matrix.const.as_r && startsWith(matrix.target.name,'debian')
   publish:
-    name: publish binary and package
+    name: publish github repository
     needs: build
     runs-on: ubuntu-latest
     environment:
@@ -122,33 +122,35 @@ jobs:
       - name: checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ startsWith(github.ref,'refs/tags/v') && 'publish' || 'prepublish' }}
+          ref: publish
           fetch-depth: 0
       - name: set gitconfig
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-      - name: reset publish to tagged commit
+      - name: merge the commit to `publish`
         run: |
           # git branch main ${{github.ref_name}}
-          # git merge ${{github.ref_name}} -m "ci: catch up to ${{github.ref_name}}"
-          git reset --hard ${{github.ref_name}}
+          git merge ${{github.ref_name}} -m "ci: catch up to ${{github.ref_name}}"
+          # git reset --hard ${{github.ref_name}}
       - name: (deb) install reprepro and dpkg-sig
         run: |
           sudo apt-get -y install reprepro dpkg-sig
-      - name: (deb) import gpg
+      - name: (deb) import gpg key
         uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.DEB_GPG_SECRET_KEY }}
-      - name: (deb) download .deb
+      - name: (deb) download deb
         uses: actions/download-artifact@v4
         with:
           pattern: deb+*
           merge-multiple: true
           path: ./
-      - name: (deb) create repository
+      - name: (deb) build repository
         run: |
-          cd publish/deb
+          cd publish/${{ startsWith(github.ref,'refs/tags/v') && 'deb' || 'deb-unstable' }}
+          rm -rf pool
+          rm -rf dists
           for deb in $(ls ../../ |grep -E '\.deb$');do
             dpkg-sig -k 3C288CF6F3917DC32ED8605655C5F6BAACEEA951 --sign builder "../../$deb"
             reprepro includedeb "$(cat ../../$deb.codename)" "../../$deb"
@@ -156,9 +158,9 @@ jobs:
           reprepro export
           rm -rf db
           cd -
-      - name: (deb) commit changee
+      - name: (deb) commit
         run: |
-          git add ./publish/deb/
-          git commit -m "ci: generate/update debian repository"
+          git add ./publish/${{ startsWith(github.ref,'refs/tags/v') && 'deb' || 'deb-unstable' }}/
+          git commit -m "ci: generate debian ${{ startsWith(github.ref,'refs/tags/v') && 'stable' || 'unstable' }} repository"
       - name: push
-        run: git push -f
+        run: git push
