@@ -2,28 +2,28 @@ Origin: https://github.com/JyJyJcr/ngx-strict-sni
 Label: ngx-strict-sni
 Suite: unstable
 Codename: bookworm
-Date: Fri, 12 Apr 2024 13:09:11 UTC
+Date: Fri, 12 Apr 2024 14:19:44 UTC
 Architectures: amd64 arm64
 Components: main
 Description: apt repository for ngx-strict-sni
 MD5Sum:
- c1cce02d8fd04a10dad894f414e0f445 836 main/binary-amd64/Packages
- 68c800f0639cb59954b00897ac2b5038 543 main/binary-amd64/Packages.gz
+ 826b5718a0102a228940d326fae4162e 844 main/binary-amd64/Packages
+ ca6216cc81d61cf9a3af05a8a764e300 545 main/binary-amd64/Packages.gz
  27107ba44c4c3d4ae0cc878de83d0ace 173 main/binary-amd64/Release
- c3db5ed2263d38c0c168fb57df073997 836 main/binary-arm64/Packages
- 9bf747fe6f3f7a3921f49e304451f014 542 main/binary-arm64/Packages.gz
+ 247f4cdd5922f0f6198bb8177d81317c 844 main/binary-arm64/Packages
+ 73866ae72ac218a4dba94ab3177e0424 545 main/binary-arm64/Packages.gz
  199c5793c248ed053a3b33da1e126746 173 main/binary-arm64/Release
 SHA1:
- 22879c8f45e8ecb0104793d2b5b2d51d93a101da 836 main/binary-amd64/Packages
- 531022cdacc960add1d5edddbcae8cb15a0d92eb 543 main/binary-amd64/Packages.gz
+ 7f86248e3cf22c5cc8d2682ae1971c97b00c3c64 844 main/binary-amd64/Packages
+ a3c2924b0b95133835dff3d7a9bf0a32c46e0c60 545 main/binary-amd64/Packages.gz
  17c53d9ee61689d52a5cfdaa50750b5ffc349836 173 main/binary-amd64/Release
- be1ec171824d74a41db9e0935149650a1f0fdc2a 836 main/binary-arm64/Packages
- fafd578a3af31fbb42a2567fad46808a1cc9eaee 542 main/binary-arm64/Packages.gz
+ e07118dbc67e78705e9ba4e823f671a430d08624 844 main/binary-arm64/Packages
+ cd53d2d397ab12bf1894900987fd40434b99cceb 545 main/binary-arm64/Packages.gz
  47fa7b45322fda4544b2226037572e6b81ab98b1 173 main/binary-arm64/Release
 SHA256:
- 26c43b7fd0d81a8246eb8512ccce586d5957518eb4e038817156e03adbf6f230 836 main/binary-amd64/Packages
- 5e12b8dcbd1dbc572e6c9465479463ad76f5f64bfdb6f54ef1f46a392cb846da 543 main/binary-amd64/Packages.gz
+ f4a0ee6d841bcfcfcb52361491331f4b9b80278de0228706761906742d393bd1 844 main/binary-amd64/Packages
+ 2f75f786f76bc2dd971a039a8d5aa1bafb58472fad0de0dc606eea451d58f8b5 545 main/binary-amd64/Packages.gz
  803e848937245f3e014cb1d3d7d4800cf8ce02477f12a7ae6b4f6aee077aa114 173 main/binary-amd64/Release
- 324b3bab98be763d5f5e35bd541d1b00933cd6cf8ff5ddd676ff5645fda79b48 836 main/binary-arm64/Packages
- a1eca0f54295779d5cf6c9dbf2ba654445dbb3bbfafcf6d1b8cea58ea6b3ff57 542 main/binary-arm64/Packages.gz
+ f232ae75f02e43b2729057b407bbf179a44f2d3c15e9862659c869e5ec9ad7c7 844 main/binary-arm64/Packages
+ a0e13833d011fcf99931c85d0f5376789c7e939facd972e25067085d0ec5c526 545 main/binary-arm64/Packages.gz
  f1f528e6286b63989d85ed1c403876db758165f1b8902e8c06f7d94132bacce4 173 main/binary-arm64/Release
