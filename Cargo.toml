@@ -3,6 +3,7 @@ name = "ngx-strict-sni"
 version = "1.0.3-dev"
 authors = ["JyJyJcr <82190170+JyJyJcr@users.noreply.github.com>"]
 edition = "2021"
+license = "WTFPL"
 homepage = "https://github.com/JyJyJcr/ngx-strict-sni"
 description = "Strict SNI validator for Nginx"
 
