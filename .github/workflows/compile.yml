@@ -136,7 +136,7 @@ jobs:
       - name: (deb) install reprepro and dpkg-sig
         run: |
           sudo apt-get -y install reprepro dpkg-sig
-      - name: (apt) import gpg
+      - name: (deb) import gpg
         uses: crazy-max/ghaction-import-gpg@v6
         with:
           gpg_private_key: ${{ secrets.DEB_GPG_SECRET_KEY }}
@@ -148,11 +148,9 @@ jobs:
           path: ./
       - name: (deb) create repository
         run: |
-          cd publish/apt
-          rm -rf dists
-          rm -rf pool
+          cd publish/deb
           for deb in $(ls ../../ |grep -E '\.deb$');do
-            # dpkg-sig -k 3C288CF6F3917DC32ED8605655C5F6BAACEEA951 --sign builder "../../$deb"
+            dpkg-sig -k 3C288CF6F3917DC32ED8605655C5F6BAACEEA951 --sign builder "../../$deb"
             reprepro includedeb "$(cat ../../$deb.codename)" "../../$deb"
           done
           reprepro export
@@ -160,7 +158,7 @@ jobs:
           cd -
       - name: (deb) commit changee
         run: |
-          git add ./publish/apt/
+          git add ./publish/deb/
           git commit -m "ci: generate/update debian repository"
       - name: push
         run: git push -f

@@ -75,7 +75,7 @@ This explanation is written based on the article below:
 
 ## Installation
 
-Currently, only the apt repository for Debian is available. The package name is changed to `libnginx-mod-http-ssl-strict-sni` following the standard name style of Nginx modules.
+Currently, only the Debian repository for Debian is available. The package name is changed to `libnginx-mod-http-ssl-strict-sni` following the standard name style of Nginx modules.
 
 ### Debian
 
@@ -87,8 +87,8 @@ Supported Architecture: `arm64`, `amd64`
 > 2024/03/28: PGP repository signature is added! Existing user should update their apt configuration.
 
 ```bash
-curl -fsSL https://jyjyjcr.github.io/ngx-strict-sni/publish/apt/gpg.key.asc | sudo gpg --dearmor -o /etc/apt/keyrings/ngx-strict-sni.gpg
-sudo echo "deb [signed-by=/etc/apt/keyrings/ngx-strict-sni.gpg] https://jyjyjcr.github.io/ngx-strict-sni/publish/apt $(cat /etc/os-release|grep VERSION_CODENAME|sed -e 's/^.*=//g') main" > "/etc/apt/sources.list.d/ngx-strict-sni.list"
+curl -fsSL https://jyjyjcr.github.io/ngx-strict-sni/publish/deb/gpg.key.asc | sudo gpg --dearmor -o /etc/apt/keyrings/ngx-strict-sni.gpg
+sudo echo "deb [signed-by=/etc/apt/keyrings/ngx-strict-sni.gpg] https://jyjyjcr.github.io/ngx-strict-sni/publish/deb $(cat /etc/os-release|grep VERSION_CODENAME|sed -e 's/^.*=//g') main" > "/etc/apt/sources.list.d/ngx-strict-sni.list"
 sudo apt update
 sudo apt install libnginx-mod-http-ssl-strict-sni
 ```
