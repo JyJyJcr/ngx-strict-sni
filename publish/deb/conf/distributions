@@ -1,6 +1,15 @@
 Origin: https://github.com/JyJyJcr/ngx-strict-sni
 Label: ngx-strict-sni
-Codename: bookworm bullseye
+Codename: bookworm
+Suite: stable
+Architectures: amd64 arm64
+Components: main
+Description: apt repository for ngx-strict-sni
+SignWith: 3C288CF6F3917DC32ED8605655C5F6BAACEEA951
+
+Origin: https://github.com/JyJyJcr/ngx-strict-sni
+Label: ngx-strict-sni
+Codename: bullseye
 Suite: stable
 Architectures: amd64 arm64
 Components: main
