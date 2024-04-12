@@ -5,35 +5,35 @@ Origin: https://github.com/JyJyJcr/ngx-strict-sni
 Label: ngx-strict-sni
 Suite: unstable
 Codename: bullseye
-Date: Fri, 12 Apr 2024 14:19:44 UTC
+Date: Fri, 12 Apr 2024 19:26:25 UTC
 Architectures: amd64 arm64
 Components: main
 Description: apt repository for ngx-strict-sni
 MD5Sum:
- cfd6bf6f3722f8c1c5710e8cfc8d4ced 861 main/binary-amd64/Packages
- cf601a46193aeafc8a49588ec956c86d 554 main/binary-amd64/Packages.gz
+ 1145e98e82dc73872f9c37f845d46efd 853 main/binary-amd64/Packages
+ e4b72fb62ca9e378af358281e311879a 551 main/binary-amd64/Packages.gz
  27107ba44c4c3d4ae0cc878de83d0ace 173 main/binary-amd64/Release
- 35a072008dc7d5294b85dea54f0dad78 861 main/binary-arm64/Packages
- 850eb6ee8496f06428b1d51be362b710 556 main/binary-arm64/Packages.gz
+ f80b38607bf841eb6c922ff5ca89c0b0 853 main/binary-arm64/Packages
+ 495a86cc35c3f421ed6a3e7854196ba2 550 main/binary-arm64/Packages.gz
  199c5793c248ed053a3b33da1e126746 173 main/binary-arm64/Release
 SHA1:
- 2d486d71a41de6db5161040b3c16d020e208680c 861 main/binary-amd64/Packages
- 4ba3d497750fbdce9a7459cc56f9a629801058ab 554 main/binary-amd64/Packages.gz
+ 8c5cfd23509e43119d00c9e9e6312d8710f98ef0 853 main/binary-amd64/Packages
+ a71d2781e01aa4f2a4a5af4dda1230107d37ec1e 551 main/binary-amd64/Packages.gz
  17c53d9ee61689d52a5cfdaa50750b5ffc349836 173 main/binary-amd64/Release
- 89f2fa4e8940fcc647a5ebfae9a42b9a39673b70 861 main/binary-arm64/Packages
- d24dd36df1b4de3fdb2b8a4fab95dc49fcd34f12 556 main/binary-arm64/Packages.gz
+ 2119f4f34b9616108ae610bd543ae270d8ff11a5 853 main/binary-arm64/Packages
+ a56e625509eb20583e17d75c02dfe56465ce82cd 550 main/binary-arm64/Packages.gz
  47fa7b45322fda4544b2226037572e6b81ab98b1 173 main/binary-arm64/Release
 SHA256:
- 9a2bed7fff4c261508fe53a4a7fa4268744c0606b978cca82c939f691831e93d 861 main/binary-amd64/Packages
- 6232f6b53c17e60e54b34532b1fc30e59c1568a97beaa98c6e8f8108b7fb68ea 554 main/binary-amd64/Packages.gz
+ 57ffb12b93e1ab9d3ef636ff6e0b8f3045a863f8ab16774b7f3e084a2cd5cdc6 853 main/binary-amd64/Packages
+ e14bb93793c4f1f1713e7a451d90be542e261a2dd18ab6eba2a0ddf4ec29f397 551 main/binary-amd64/Packages.gz
  803e848937245f3e014cb1d3d7d4800cf8ce02477f12a7ae6b4f6aee077aa114 173 main/binary-amd64/Release
- 9e0894e7281d98576068a9834f1166dbed2a84b4240bb64c30e649d12e5b2a43 861 main/binary-arm64/Packages
- c1ff5c17227e0db786c00ec21b343b9007923fe370b692fe5d6bbc5ce006a448 556 main/binary-arm64/Packages.gz
+ a30c90e1e9552c66b7f86219c599262d242e0df0ea62582fbe1c477c9a6c231e 853 main/binary-arm64/Packages
+ c53a83a30a78a5bdd662aeed1ef3d3088db8c0f507aa87185b0da0aebc3990c1 550 main/binary-arm64/Packages.gz
  f1f528e6286b63989d85ed1c403876db758165f1b8902e8c06f7d94132bacce4 173 main/binary-arm64/Release
 -----BEGIN PGP SIGNATURE-----
 
-iHUEARYIAB0WIQQ8KIz285F9wy7YYFZVxfa6rO6pUQUCZhlDAAAKCRBVxfa6rO6p
-URSrAQDDXK8G8W1GKCdGmtnyaa/OQwe2uEOxSCaU1UVoK4ZpggEA8BwMVtvZ9WC7
-NVfrHT98N0TBxV2tU/ilqyaUnAUHewc=
-=Zsel
+iHUEARYIAB0WIQQ8KIz285F9wy7YYFZVxfa6rO6pUQUCZhmK4QAKCRBVxfa6rO6p
+UStvAP4skpORFixuT3Duz6pDdJVOQc7ifOpaG1GvJz2xAzavWAEA5orzQTZmx9xS
+HRzaHAxKEpYTsfBAnJ1KLyc1BdPeIgs=
+=vqLq
 -----END PGP SIGNATURE-----
