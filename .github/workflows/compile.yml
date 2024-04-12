@@ -2,17 +2,20 @@ name: test & release
 on:
   push:
     branches: main
-    tags: v*
+    tags:
+      - v*
+      - p*
 
 jobs:
-  compile:
-    name: ${{ matrix.mode.tr }} on ${{matrix.target.name}}
+  build:
+    name: ${{ matrix.const.as_r && ( matrix.const.is_r && 'release' || 'prerelease') || 'test' }} build on ${{matrix.target.name}}
     runs-on: ${{ matrix.target.host }}
     strategy:
       matrix:
-        mode:
-          - tr: ${{ startsWith(github.ref,'refs/tags/v') && 'release' || 'test' }}
-            bool: ${{ startsWith(github.ref,'refs/tags/v') }}
+        const:
+          - mode: ${{ (startsWith(github.ref,'refs/tags/v')||startsWith(github.ref,'refs/tags/p')) && 'release' || 'test' }}
+            as_r: ${{ startsWith(github.ref,'refs/tags/v')||startsWith(github.ref,'refs/tags/p') }}
+            is_r: ${{ startsWith(github.ref,'refs/tags/v') }}
         target:
           - name: osx_arm64
             triple: aarch64-apple-darwin
@@ -82,13 +85,13 @@ jobs:
           --rm -i -v $PWD:/repo runner:latest bash <<'EOF'
           set -xeu
           cd /repo
-          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ matrix.mode.tr }}
+          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ matrix.const.as_r && 'release'|| 'test' }}
           EOF
           sudo chown -R "$(id -u $USER):$(id -g $USER)" .
         if: ${{matrix.target.docker}}
       - name: run in real
         run: |
-          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ matrix.mode.tr }}
+          cicd/maker.sh ${{matrix.target.name}} ${{matrix.target.ngx}} ${{matrix.target.triple}} ${{ matrix.const.as_r && 'release'|| 'test' }}
         if: ${{!matrix.target.docker}}
       - name: raw upload
         uses: actions/upload-artifact@v4
@@ -104,45 +107,46 @@ jobs:
           path: |
             target/${{matrix.target.triple}}/debian/*.deb
             target/${{matrix.target.triple}}/debian/*.deb.codename
-        if: matrix.mode.bool && startsWith(matrix.target.name,'debian')
+        if: matrix.const.as_r && startsWith(matrix.target.name,'debian')
   publish:
     name: publish binary and package
-    needs: compile
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: publish
     permissions:
       contents: write
       actions: write
-    if: startsWith(github.ref,'refs/tags/v')
+    if: startsWith(github.ref,'refs/tags/v')||startsWith(github.ref,'refs/tags/p')
     steps:
       - name: checkout
         uses: actions/checkout@v4
         with:
-          ref: publish
+          ref: ${{ startsWith(github.ref,'refs/tags/v') && 'publish' || 'prepublish' }}
           fetch-depth: 0
       - name: set gitconfig
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-      - name: merge tagged commit to publish
+      - name: reset publish to tagged commit
         run: |
           # git branch main ${{github.ref_name}}
-          git merge ${{github.ref_name}} -m "ci: catch up to ${{github.ref_name}}"
-      - name: (apt) install reprepro and dpkg-sig
+          # git merge ${{github.ref_name}} -m "ci: catch up to ${{github.ref_name}}"
+          git reset --hard ${{github.ref_name}}
+      - name: (deb) install reprepro and dpkg-sig
         run: |
           sudo apt-get -y install reprepro dpkg-sig
       - name: (apt) import gpg
         uses: crazy-max/ghaction-import-gpg@v6
         with:
-          gpg_private_key: ${{ secrets.APT_GPG_SECRET_KEY }}
-      - name: (apt) download .deb
+          gpg_private_key: ${{ secrets.DEB_GPG_SECRET_KEY }}
+      - name: (deb) download .deb
         uses: actions/download-artifact@v4
         with:
           pattern: deb+*
           merge-multiple: true
           path: ./
-      - name: (apt) create repository
+      - name: (deb) create repository
         run: |
           cd publish/apt
           rm -rf dists
@@ -154,7 +158,9 @@ jobs:
           reprepro export
           rm -rf db
           cd -
+      - name: (deb) commit changee
+        run: |
           git add ./publish/apt/
           git commit -m "ci: generate/update debian repository"
       - name: push
-        run: git push
+        run: git push -f
