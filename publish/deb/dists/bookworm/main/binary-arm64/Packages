@@ -1,0 +1,20 @@
+Package: libnginx-mod-http-ssl-strict-sni
+Version: 1.0.2-1+deb12
+Architecture: arm64
+Homepage: https://github.com/JyJyJcr/ngx-strict-sni
+Maintainer: JyJyJcr <82190170+JyJyJcr@users.noreply.github.com>
+Installed-Size: 328
+Depends: nginx-abi-1.22.1-7, libc6 (>= 2.34)
+Recommends: nginx
+Priority: optional
+Section: httpd
+Filename: pool/main/libn/libnginx-mod-http-ssl-strict-sni/libnginx-mod-http-ssl-strict-sni_1.0.2-1+deb12_arm64.deb
+Size: 123446
+SHA256: 2e906e7c165482671fc737e9e6f7200fa4d6992ac9812b30085d00e8d47cf269
+SHA1: c914d40afc10fb0eb650462a601de352ec451eba
+MD5sum: 90c1980268b073289ee3ad62934a01ff
+Description: Strict SNI validator for Nginx
+ The ngx_http_ssl_strict_sni module is a validator of the integrity of SNI and
+ the Host header. This blocks "SNI spoofing" to virtual hosts. Without ssl, this
+ module has no effects.
+

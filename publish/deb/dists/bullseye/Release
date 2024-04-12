@@ -1,0 +1,29 @@
+Origin: https://github.com/JyJyJcr/ngx-strict-sni
+Label: ngx-strict-sni
+Suite: stable
+Codename: bullseye
+Date: Fri, 12 Apr 2024 11:15:21 UTC
+Architectures: amd64 arm64
+Components: main
+Description: apt repository for ngx-strict-sni
+MD5Sum:
+ dc5e04ee9b09baf7ded13cf4a3a27071 853 main/binary-amd64/Packages
+ 6363cc2db381bdb0e6473f29781ba2a9 552 main/binary-amd64/Packages.gz
+ 3549a8f8313166f7bc0e8121b24770de 171 main/binary-amd64/Release
+ ba2635d18caa3c5b3f64bfaf8ef3e392 853 main/binary-arm64/Packages
+ 1f71ef10ecaef2d419bdb29eebbabe99 549 main/binary-arm64/Packages.gz
+ 3c952b308d05cfb35870387a1c8f259d 171 main/binary-arm64/Release
+SHA1:
+ 8d40ac64d599dbef5c0af15463b5be40386e6560 853 main/binary-amd64/Packages
+ 2659c7a7616c28856b9b9a27cc1a13b3d3a46b3c 552 main/binary-amd64/Packages.gz
+ 54c29f6ff2d0e7730e0d0392a2d356943834f1fe 171 main/binary-amd64/Release
+ cdff6db6734d1565799be80b4e667686dadda48a 853 main/binary-arm64/Packages
+ a35930e1066282789f7a26b7d1c3c59d2f2e89dd 549 main/binary-arm64/Packages.gz
+ cf9cb9757be2e0ba1faa14ac701bba05f5e8dead 171 main/binary-arm64/Release
+SHA256:
+ 4f209971aa6321ce84d60765e82e6774b86355ec639352c78891758cfb4f5b8f 853 main/binary-amd64/Packages
+ e102cb0df9cf97d3253dad030fdded772959493bcacafdd36faced19b5773330 552 main/binary-amd64/Packages.gz
+ e41c2c68944ec526062e1e9da9723b73229fd0fafc7276edd6e898ab1642a38a 171 main/binary-amd64/Release
+ 538bffb74d57d241e394853bc431fd42399e8db0217be4b2b640153c77577e50 853 main/binary-arm64/Packages
+ 7a04ab0f53af142cd809a6ac3fb9c6b6452303b951f31e855e1dd3f178871e21 549 main/binary-arm64/Packages.gz
+ 5596d3113a2e08d8a71001f84458664b3b68e5b995dbfd1a92cd682bfe79c754 171 main/binary-arm64/Release
