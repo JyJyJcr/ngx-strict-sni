@@ -17,6 +17,7 @@ use std::ptr::addr_of;
 ngx_modules!(strict_sni_module);
 
 #[no_mangle]
+#[allow(non_upper_case_globals)]
 pub static mut strict_sni_module: ngx_module_t = ngx_module_t {
     ctx_index: ngx_uint_t::max_value(),
     index: ngx_uint_t::max_value(),
@@ -49,6 +50,7 @@ pub static mut strict_sni_module: ngx_module_t = ngx_module_t {
 };
 
 #[no_mangle]
+#[allow(non_upper_case_globals)]
 static strict_sni_module_ctx: ngx_http_module_t = ngx_http_module_t {
     preconfiguration: Some(Module::preconfiguration),
     postconfiguration: Some(Module::postconfiguration),
@@ -115,6 +117,7 @@ impl http::Merge for ModuleConfig {
 }
 
 #[no_mangle]
+#[allow(non_upper_case_globals)]
 static mut strict_sni_commands: [ngx_command_t; 2] = [
     ngx_command_t {
         name: ngx_string!("strict_sni"),
