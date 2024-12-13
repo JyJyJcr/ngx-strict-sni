@@ -1,9 +1,10 @@
 use ngx::ffi::{
     nginx_version, ngx_array_push, ngx_command_t, ngx_conf_t, ngx_http_core_module,
     ngx_http_handler_pt, ngx_http_module_t, ngx_http_phases_NGX_HTTP_ACCESS_PHASE,
-    ngx_http_request_t, ngx_inet_get_port, ngx_int_t, ngx_module_t, ngx_ssl_get_server_name,
-    ngx_str_t, ngx_uint_t, NGX_CONF_TAKE1, NGX_HTTP_LOC_CONF, NGX_HTTP_MAIN_CONF, NGX_HTTP_MODULE,
-    NGX_HTTP_SRV_CONF, NGX_RS_HTTP_LOC_CONF_OFFSET, NGX_RS_MODULE_SIGNATURE,
+    ngx_http_request_t, ngx_http_server_name_t, ngx_inet_get_port, ngx_int_t, ngx_module_t,
+    ngx_ssl_get_server_name, ngx_str_t, ngx_uint_t, NGX_CONF_TAKE1, NGX_HTTP_LOC_CONF,
+    NGX_HTTP_MAIN_CONF, NGX_HTTP_MODULE, NGX_HTTP_SRV_CONF, NGX_RS_HTTP_LOC_CONF_OFFSET,
+    NGX_RS_MODULE_SIGNATURE,
 };
 use ngx::http::MergeConfigError;
 use ngx::{core, core::Status, http, http::HTTPModule};
@@ -69,24 +70,18 @@ impl http::HTTPModule for Module {
     type SrvConf = ();
     type LocConf = ModuleConfig;
     unsafe extern "C" fn postconfiguration(cf: *mut ngx_conf_t) -> ngx_int_t {
-        match unsafe {
+        if let Some(conf) = unsafe {
             http::ngx_http_conf_get_module_main_conf(cf, &*addr_of!(ngx_http_core_module)).as_mut()
         } {
-            Some(conf) => {
-                match unsafe {
-                    (ngx_array_push(
-                        &mut conf.phases[ngx_http_phases_NGX_HTTP_ACCESS_PHASE as usize].handlers,
-                    ) as *mut ngx_http_handler_pt)
-                        .as_mut()
-                } {
-                    Some(pointer) => {
-                        *pointer = Some(strict_sni_access_handler);
-                        return Status::NGX_OK.into();
-                    }
-                    None => {}
-                }
+            if let Some(pointer) = unsafe {
+                (ngx_array_push(
+                    &mut conf.phases[ngx_http_phases_NGX_HTTP_ACCESS_PHASE as usize].handlers,
+                ) as *mut ngx_http_handler_pt)
+                    .as_mut()
+            } {
+                *pointer = Some(strict_sni_access_handler);
+                return Status::NGX_OK.into();
             }
-            None => {}
         }
         Status::NGX_ERROR.into()
     }
@@ -106,11 +101,8 @@ enum ModuleStatus {
 
 impl http::Merge for ModuleConfig {
     fn merge(&mut self, prev: &ModuleConfig) -> Result<(), MergeConfigError> {
-        match self.status {
-            ModuleStatus::UNSET => {
-                self.status = prev.status.clone();
-            }
-            _ => {}
+        if let ModuleStatus::UNSET = self.status {
+            self.status = prev.status.clone();
         };
         Ok(())
     }
@@ -137,28 +129,20 @@ extern "C" fn strict_sni_command_handler(
     _cmd: *mut ngx_command_t,
     conf: *mut c_void,
 ) -> *mut c_char {
-    match unsafe { (conf as *mut ModuleConfig).as_mut() } {
-        Some(conf) => match unsafe { cf.as_ref() } {
-            Some(cf) => match unsafe { cf.args.as_ref() } {
-                Some(args) => {
-                    match unsafe { (args.elts as *mut ngx_str_t).add(1).as_ref() } {
-                        Some(ngx_arg) => {
-                            let arg = ngx_arg.to_str();
-                            use ModuleStatus::*;
-                            if arg.eq_ignore_ascii_case("on") {
-                                conf.status = ON;
-                            } else if arg.eq_ignore_ascii_case("off") {
-                                conf.status = OFF;
-                            }
-                        }
-                        None => {}
-                    };
-                }
-                None => {}
-            },
-            None => {}
-        },
-        None => {}
+    if let Some(conf) = unsafe { (conf as *mut ModuleConfig).as_mut() } {
+        if let Some(cf) = unsafe { cf.as_ref() } {
+            if let Some(args) = unsafe { cf.args.as_ref() } {
+                if let Some(ngx_arg) = unsafe { (args.elts as *mut ngx_str_t).add(1).as_ref() } {
+                    let arg = ngx_arg.to_str();
+                    use ModuleStatus::*;
+                    if arg.eq_ignore_ascii_case("on") {
+                        conf.status = ON;
+                    } else if arg.eq_ignore_ascii_case("off") {
+                        conf.status = OFF;
+                    }
+                };
+            }
+        }
     }
     std::ptr::null_mut()
 }
