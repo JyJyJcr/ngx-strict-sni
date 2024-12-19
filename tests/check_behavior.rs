@@ -20,8 +20,8 @@ mod tests {
         ("https://localhost:4433/xxx", Some("localhost:4422"), 421),
         // ssl strict sub
         ("https://localhost:4433/sub", None, 301),
-        ("https://localhost:4433/sub", Some("localhost:4433"), 301),
         ("https://localhost:4433/sub", Some("localguest:4433"), 421),
+        ("https://localhost:4433/sub", Some("localhost:4433"), 301),
         ("https://localhost:4433/sub", Some("localhost:4422"), 421),
         // ssl dull sub
         ("https://localhost:4433/dull", None, 301),
@@ -32,17 +32,17 @@ mod tests {
         ("http://localhost:8080", None, 200),
         ("http://localhost:8080", Some("localhost:8080"), 200),
         ("http://localhost:8080", Some("localguest:8080"), 200),
-        ("http://localhost:8080", Some("localhost:8888"), 200),
+        ("http://localhost:8080", Some("localhost:8888"), 421),
         // bare unexist sub
         ("http://localhost:8080/xxx", None, 404),
         ("http://localhost:8080/xxx", Some("localhost:8080"), 404),
         ("http://localhost:8080/xxx", Some("localguest:8080"), 404),
-        ("http://localhost:8080/xxx", Some("localhost:8888"), 404),
+        ("http://localhost:8080/xxx", Some("localhost:8888"), 421),
         // bare strict sub
         ("http://localhost:8080/sub", None, 301),
         ("http://localhost:8080/sub", Some("localhost:8080"), 301),
         ("http://localhost:8080/sub", Some("localguest:8080"), 301),
-        ("http://localhost:8080/sub", Some("localhost:8888"), 301),
+        ("http://localhost:8080/sub", Some("localhost:8888"), 421),
         // bare dull sub
         ("http://localhost:8080/dull", None, 301),
         ("http://localhost:8080/dull", Some("localhost:8080"), 301),
@@ -117,22 +117,46 @@ mod tests {
         let output = nginx.restart().expect("Unable to restart NGINX");
         assert!(output.status.success());
 
+        // try wait
+        std::thread::sleep(std::time::Duration::from_secs(5));
+
         // test core
-        let test_result = TEST_CURL_TUPLE
-            .map(|(url, header_host, code)| (url, header_host, code, curl_test(url, header_host)));
+        let mut f: Result<(), (&str, Option<&str>, u32, Result<u32, Error>)> = Ok(());
+        for (url, header_host, code) in TEST_CURL_TUPLE {
+            let res: Result<u32, Error> = curl_test(url, header_host);
+            if let Ok(res_code) = res {
+                if res_code == code {
+                    continue;
+                }
+            }
+            f = Err((url, header_host, code, res));
+            break;
+        }
+
+        //let test_result = TEST_CURL_TUPLE
+        //    .map(|(url, header_host, code)| (url, header_host, code, curl_test(url, header_host)));
 
         // stop nginx
         let output = nginx.stop().expect("Unable to stop NGINX");
         assert!(output.status.success());
 
         // test valid
-        for (url, header_host, code, res) in test_result {
-            let res = res.unwrap();
-            if res != code {
-                panic!(
-                    "url: {}, header: {:?}, expected:{} != ans:{}",
-                    url, header_host, code, res
-                )
+        if let Err((url, header_host, code, res)) = f {
+            match res {
+                Ok(res) => {
+                    if res != code {
+                        panic!(
+                            "url: {}, header: {:?}, expected:{} != ans:{}",
+                            url, header_host, code, res
+                        )
+                    }
+                }
+                Err(e) => {
+                    panic!(
+                        "url: {}, header: {:?}, expected:{} err:{}",
+                        url, header_host, code, e
+                    )
+                }
             }
         }
     }

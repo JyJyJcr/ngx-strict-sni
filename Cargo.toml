@@ -12,6 +12,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 ngx = { git = "https://github.com/JyJyJcr/ngx-rust",branch="integ_test_inuse" }
+fluent-uri = "0.3.2"
 #ngx = { path = "../ngx-rust"}
 
 
