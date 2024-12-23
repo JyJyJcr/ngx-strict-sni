@@ -1,25 +1,5 @@
-use std::{ptr::slice_from_raw_parts, str};
+use std::str;
 
-use ngx::{ffi::ngx_str_t, http::Request};
-
-pub fn to_rust_str_ref<'a>(ngx_str: &'a ngx_str_t) -> Option<&'a str> {
-    if !ngx_str.data.is_null() {
-        let ptr = slice_from_raw_parts(ngx_str.data, ngx_str.len);
-        if let Some(slice) = unsafe { ptr.as_ref() } {
-            return str::from_utf8(slice).ok();
-        }
-    }
-    None
-}
-
-pub fn get_host_header_str<'a>(request: &'a Request) -> Option<&'a str> {
-    let inner = request.get_inner();
-    if let Some(elt) = unsafe { inner.headers_in.host.as_ref() } {
-        to_rust_str_ref(&elt.value)
-    } else {
-        None
-    }
-}
 pub struct ParseHostHeaderError;
 pub fn parse_host_header(host_header: &str) -> Result<(&str, Option<u16>), ParseHostHeaderError> {
     Ok(match host_header.rsplit_once(':') {
@@ -36,14 +16,10 @@ pub fn parse_host_header(host_header: &str) -> Result<(&str, Option<u16>), Parse
         None => (host_header, None),
     })
 }
-pub fn get_request_line_str<'a>(request: &'a Request) -> Option<&'a str> {
-    let inner = request.get_inner();
-    to_rust_str_ref(&inner.request_line)
-}
 
-pub enum URI<'a> {
-    Absolute { scheme: &'a str },
-}
+// pub enum URI<'a> {
+//     Absolute { scheme: &'a str },
+// }
 
 pub struct ParseRequestLineError;
 pub fn parse_request_line(

@@ -1,141 +1,94 @@
+mod ngx_ext;
 mod util;
 
 use ::core::str;
 use fluent_uri::{Uri, UriRef};
 use ngx::ffi::{
     nginx_version, ngx_array_push, ngx_command_t, ngx_conf_s, ngx_conf_t, ngx_connection_t,
-    ngx_http_core_module, ngx_http_get_flushed_variable, ngx_http_get_variable,
+    ngx_cycle_t, ngx_http_core_module, ngx_http_get_flushed_variable, ngx_http_get_variable,
     ngx_http_get_variable_index, ngx_http_get_variable_pt, ngx_http_handler_pt, ngx_http_module_t,
     ngx_http_phases_NGX_HTTP_ACCESS_PHASE, ngx_http_phases_NGX_HTTP_POST_READ_PHASE,
     ngx_http_phases_NGX_HTTP_PREACCESS_PHASE, ngx_http_request_t, ngx_http_ssl_certificate,
-    ngx_inet_get_port, ngx_int_t, ngx_module_t, ngx_ssl_certificate_index, ngx_ssl_get_server_name,
-    ngx_ssl_get_subject_dn, ngx_str_t, ngx_uint_t, EVP_sha1, SSL_get0_peer_certificate,
-    SSL_get_certificate, X509_LOOKUP_by_fingerprint, X509_check_host, X509_digest, X509_free,
-    X509_get_serialNumber, EVP_MAX_MD_SIZE, NGX_CONF_TAKE1, NGX_ERROR, NGX_HTTP_LOC_CONF,
-    NGX_HTTP_MAIN_CONF, NGX_HTTP_MODULE, NGX_HTTP_SRV_CONF, NGX_HTTP_VERSION_20,
-    NGX_RS_HTTP_LOC_CONF_OFFSET, NGX_RS_MODULE_SIGNATURE, X509,
+    ngx_inet_get_port, ngx_int_t, ngx_log_t, ngx_module_t, ngx_ssl_certificate_index,
+    ngx_ssl_get_server_name, ngx_ssl_get_subject_dn, ngx_str_t, ngx_uint_t, EVP_sha1,
+    SSL_get0_peer_certificate, SSL_get_certificate, X509_LOOKUP_by_fingerprint, X509_check_host,
+    X509_digest, X509_free, X509_get_serialNumber, EVP_MAX_MD_SIZE, NGX_CONF_TAKE1, NGX_ERROR,
+    NGX_HTTP_LOC_CONF, NGX_HTTP_MAIN_CONF, NGX_HTTP_MODULE, NGX_HTTP_SRV_CONF, NGX_HTTP_VERSION_20,
+    NGX_OK, NGX_RS_HTTP_LOC_CONF_OFFSET, NGX_RS_MODULE_SIGNATURE, X509,
 };
 use ngx::http::{HTTPStatus, MergeConfigError, Request};
 use ngx::{core, core::Status, http, http::HTTPModule};
 use ngx::{
-    http_request_handler, ngx_log_debug_http, ngx_modules, ngx_null_command, ngx_null_string,
-    ngx_string,
+    http_request_handler, ngx_log_debug, ngx_log_debug_http, ngx_modules, ngx_null_command,
+    ngx_null_string, ngx_string,
+};
+use ngx_ext::request::RequestExt;
+use ngx_ext::variable::VariableHook;
+use ngx_ext::{
+    command, ngx_http_module_ctx, Command, CommandArgFlag, CommandContextFlag, CommandList, LocCtx,
+    ModuleType, NgxModuleBuilder,
 };
 use std::cell::OnceCell;
 use std::num::ParseIntError;
-use std::os::raw::{self, c_char, c_void};
+use std::os::raw::{c_char, c_void};
 use std::ptr::{addr_of, slice_from_raw_parts, slice_from_raw_parts_mut};
 use std::slice::from_raw_parts;
 use std::str::{from_utf8, from_utf8_unchecked};
-use std::sync::OnceLock;
+use std::sync::{LazyLock, OnceLock};
 use std::{default, slice};
-use util::{get_host_header_str, get_request_line_str, parse_host_header, parse_request_line};
+use util::{parse_host_header, parse_request_line};
 
+// this macro uses variable name directly.
 ngx_modules!(strict_sni_module);
 
-#[no_mangle]
+// so her we surpress non_upper_case warning.
 #[allow(non_upper_case_globals)]
-pub static mut strict_sni_module: ngx_module_t = ngx_module_t {
-    ctx_index: ngx_uint_t::max_value(),
-    index: ngx_uint_t::max_value(),
-    name: std::ptr::null_mut(),
-    spare0: 0,
-    spare1: 0,
-    version: nginx_version as ngx_uint_t,
-    signature: NGX_RS_MODULE_SIGNATURE.as_ptr() as *const c_char,
+static mut strict_sni_module: ngx_module_t = NgxModuleBuilder::new(
+    &STRICT_SNI_MODULE_CTX,
+    &STRICT_SNI_COMMAND_LIST,
+    ModuleType::HTTP,
+)
+//.init_module(init_module)
+.build();
 
-    ctx: &strict_sni_module_ctx as *const _ as *mut _,
-    commands: unsafe { &strict_sni_commands[0] as *const _ as *mut _ },
-    type_: NGX_HTTP_MODULE as ngx_uint_t,
+// unsafe extern "C" fn init_module(cycle: *mut ngx_cycle_t) -> ngx_int_t {
+//     if let Some(cycle) = cycle.as_ref() {
+//         ngx_log_debug!(cycle.log, "strict_sni module init_master called");
+//     }
+//     Status::NGX_OK.into()
+// }
 
-    init_master: None,
-    init_module: None,
-    init_process: None,
-    init_thread: None,
-    exit_thread: None,
-    exit_process: None,
-    exit_master: None,
+// const fn module_ref() -> &'static ngx_module_t {
+//     unsafe { &*&raw const strict_sni_module }
+// }
 
-    spare_hook0: 0,
-    spare_hook1: 0,
-    spare_hook2: 0,
-    spare_hook3: 0,
-    spare_hook4: 0,
-    spare_hook5: 0,
-    spare_hook6: 0,
-    spare_hook7: 0,
-};
+command_list!(
+    STRICT_SNI_COMMAND_LIST = [command::<StrictSniCommand>()];
+);
 
-#[no_mangle]
-#[allow(non_upper_case_globals)]
-static strict_sni_module_ctx: ngx_http_module_t = ngx_http_module_t {
-    preconfiguration: Some(Module::preconfiguration),
-    postconfiguration: Some(Module::postconfiguration),
-    create_main_conf: Some(Module::create_main_conf),
-    init_main_conf: Some(Module::init_main_conf),
-    create_srv_conf: Some(Module::create_srv_conf),
-    merge_srv_conf: Some(Module::merge_srv_conf),
-    create_loc_conf: Some(Module::create_loc_conf),
-    merge_loc_conf: Some(Module::merge_loc_conf),
-};
+const STRICT_SNI_MODULE_CTX: ngx_http_module_t = ngx_http_module_ctx::<Module>();
 
 struct Module;
 
-static MODULE_DATA: OnceLock<ModuleCommon> = OnceLock::new();
-
 #[derive(Debug)]
 struct ModuleCommon {
-    host: VariableRef,
-    scheme: VariableRef,
-    sni: VariableRef,
+    host: VariableHook,
+    scheme: VariableHook,
+    sni: VariableHook,
 }
 
-#[derive(Debug)]
-struct VariableRef(ngx_uint_t);
-fn get_variable_ref(cf: &mut ngx_conf_t, name: &mut ngx_str_t) -> Option<VariableRef> {
-    let r = unsafe { ngx_http_get_variable_index(cf, name) };
-    if r == NGX_ERROR as ngx_int_t {
-        None
-    } else {
-        Some(VariableRef(r as ngx_uint_t))
-    }
-}
-
-fn solve_variable_ref<'a>(r: &VariableRef, req: &'a Request) -> Option<&'a [u8]> {
-    let r = unsafe { ngx_http_get_flushed_variable(req.get_inner() as *const _ as *mut _, r.0) };
-    if let Some(v) = unsafe { r.as_ref() } {
-        if v.not_found() == 0 {
-            let ptr = slice_from_raw_parts(v.data, v.len() as usize);
-            if let Some(slice) = unsafe { ptr.as_ref() } {
-                return Some(slice);
-            }
-        }
-    }
-    None
-}
-// fn solve_variable_ref_mut<'a>(r: &VariableRef,req:&'a mut Request)->Option<&'a mut [u8]>{
-//     let r = unsafe { ngx_http_get_flushed_variable( req.get_inner() as *const _ as *mut _, r.0) };
-//     if let Some(v) =unsafe{r.as_ref()} {
-//         if v.not_found() == 0 {
-//             let ptr=slice_from_raw_parts(v.data, v.len() as usize);
-//             if let Some(slice)=unsafe{ptr.as_ref()}{
-//                 return Some(slice)
-//             }
-//         }
-//     }
-//     None
-// }
+static MODULE_DATA: OnceLock<ModuleCommon> = OnceLock::new();
 
 impl http::HTTPModule for Module {
     type MainConf = ();
     type SrvConf = ();
     type LocConf = ModuleConfig;
     unsafe extern "C" fn postconfiguration(cf: *mut ngx_conf_t) -> ngx_int_t {
-        if let Some(cf) = unsafe { cf.as_mut() } {
-            if let Some(conf) = unsafe {
+        if let Some(cf) = cf.as_mut() {
+            if let Some(conf) =
                 http::ngx_http_conf_get_module_main_conf(cf, &*addr_of!(ngx_http_core_module))
                     .as_mut()
-            } {
+            {
                 if let Some(pointer) = unsafe {
                     (ngx_array_push(
                         &mut conf.phases[ngx_http_phases_NGX_HTTP_PREACCESS_PHASE as usize]
@@ -143,11 +96,11 @@ impl http::HTTPModule for Module {
                     ) as *mut ngx_http_handler_pt)
                         .as_mut()
                 } {
-                    *pointer = Some(strict_sni_access_handler);
-                    if let Some(vr_host) = get_variable_ref(cf, &mut ngx_string!("host")) {
-                        if let Some(vr_scheme) = get_variable_ref(cf, &mut ngx_string!("scheme")) {
-                            if let Some(vr_sni) =
-                                get_variable_ref(cf, &mut ngx_string!("ssl_server_name"))
+                    *pointer = Some(preaccess_handler);
+                    if let Ok(vr_host) = VariableHook::hook(cf, &mut ngx_string!("host")) {
+                        if let Ok(vr_scheme) = VariableHook::hook(cf, &mut ngx_string!("scheme")) {
+                            if let Ok(vr_sni) =
+                                VariableHook::hook(cf, &mut ngx_string!("ssl_server_name"))
                             {
                                 let _ = MODULE_DATA.set(ModuleCommon {
                                     host: vr_host,
@@ -168,62 +121,16 @@ impl http::HTTPModule for Module {
 #[derive(Debug, Default)]
 struct ModuleConfig {
     //rfc_mode: RfcCheckMode,
-    port_mode: PortCheckMode,
-    host_mode: HostCheckMode,
-}
-
-#[derive(Debug)]
-struct Validator {
-    port_mode: Option<()>,
-    host_mode: Option<HostCheckRigor>,
-    common: &'static ModuleCommon,
-}
-
-impl ModuleConfig {
-    fn get_validator(&self, common_cell: &'static OnceLock<ModuleCommon>) -> Option<Validator> {
-        let port_mode = match self.port_mode {
-            PortCheckMode::On => Some(()),
-            _ => None,
-        };
-        let host_mode = match &self.host_mode {
-            HostCheckMode::On(rigor) => Some(rigor.clone()),
-            _ => None,
-        };
-        if port_mode.is_some() || host_mode.is_some() {
-            if let Some(common) = common_cell.get() {
-                return Some(Validator {
-                    port_mode,
-                    host_mode,
-                    common,
-                });
-            }
-        }
-        None
-    }
+    port_mode: CheckSwitch<()>,
+    host_mode: CheckSwitch<HostCheckRigor>,
 }
 
 #[derive(Debug, Default, Clone)]
-enum PortCheckMode {
+enum CheckSwitch<M> {
     #[default]
     Unset,
     Off,
-    On,
-}
-impl PortCheckMode {
-    fn is_active(&self) -> bool {
-        match self {
-            PortCheckMode::Unset | PortCheckMode::Off => false,
-            _ => true,
-        }
-    }
-}
-
-#[derive(Debug, Default, Clone)]
-enum HostCheckMode {
-    #[default]
-    Unset,
-    Off,
-    On(HostCheckRigor),
+    On(M),
 }
 
 #[derive(Debug, Clone)]
@@ -232,115 +139,148 @@ enum HostCheckRigor {
     Strict,
 }
 
-impl HostCheckMode {
-    fn is_active(&self) -> bool {
-        match self {
-            HostCheckMode::Unset | HostCheckMode::Off => false,
-            _ => true,
-        }
-    }
-}
-
 impl http::Merge for ModuleConfig {
     fn merge(&mut self, prev: &ModuleConfig) -> Result<(), MergeConfigError> {
-        if let PortCheckMode::Unset = self.port_mode {
+        if let CheckSwitch::Unset = self.port_mode {
             self.port_mode = prev.port_mode.clone();
         };
-        if let HostCheckMode::Unset = self.host_mode {
+        if let CheckSwitch::Unset = self.host_mode {
             self.host_mode = prev.host_mode.clone();
         };
         Ok(())
     }
 }
 
-#[no_mangle]
-#[allow(non_upper_case_globals)]
-static mut strict_sni_commands: [ngx_command_t; 2] = [
-    ngx_command_t {
-        name: ngx_string!("strict_sni"),
-        type_: (NGX_HTTP_MAIN_CONF | NGX_HTTP_SRV_CONF | NGX_HTTP_LOC_CONF | NGX_CONF_TAKE1)
-            as ngx_uint_t,
-        set: Some(strict_sni_command_handler),
-        conf: NGX_RS_HTTP_LOC_CONF_OFFSET,
-        offset: 0,
-        post: std::ptr::null_mut(),
-    },
-    ngx_null_command!(),
-];
+struct StrictSniCommand;
+impl Command for StrictSniCommand {
+    type Ctx = LocCtx<Module>;
+    const NAME: ngx_str_t = ngx_string!("strict_sni");
 
-#[no_mangle]
-extern "C" fn strict_sni_command_handler(
-    cf: *mut ngx_conf_t,
-    _cmd: *mut ngx_command_t,
-    conf: *mut c_void,
-) -> *mut c_char {
-    if let Some(conf) = unsafe { (conf as *mut ModuleConfig).as_mut() } {
-        if let Some(cf) = unsafe { cf.as_ref() } {
-            if let Some(args) = unsafe { cf.args.as_ref() } {
-                if let Some(ngx_arg) = unsafe { (args.elts as *mut ngx_str_t).add(1).as_ref() } {
-                    let arg = ngx_arg.to_str();
-                    // good old on/off
-                    if arg.eq_ignore_ascii_case("on") {
-                        conf.port_mode = PortCheckMode::On;
-                        conf.host_mode = HostCheckMode::On(HostCheckRigor::Normal);
-                    } else if arg.eq_ignore_ascii_case("off") {
-                        conf.port_mode = PortCheckMode::Off;
-                        conf.host_mode = HostCheckMode::Off;
-                    } else if arg.eq_ignore_ascii_case("strict") {
-                        conf.port_mode = PortCheckMode::On;
-                        conf.host_mode = HostCheckMode::On(HostCheckRigor::Strict);
-                    }
-                    // port only setting
-                    if arg.eq_ignore_ascii_case("port") {
-                        conf.port_mode = PortCheckMode::On;
-                    } else if arg.eq_ignore_ascii_case("no_port") {
-                        conf.port_mode = PortCheckMode::Off;
-                    }
-                    // host only setting
-                    if arg.eq_ignore_ascii_case("host") {
-                        conf.host_mode = HostCheckMode::On(HostCheckRigor::Normal);
-                    } else if arg.eq_ignore_ascii_case("strict_host") {
-                        conf.host_mode = HostCheckMode::On(HostCheckRigor::Strict);
-                    } else if arg.eq_ignore_ascii_case("no_host") {
-                        conf.host_mode = HostCheckMode::Off;
-                    }
-                };
-            }
+    const CONTEXT_FLAG: ngx_ext::CommandContextFlag = {
+        CommandContextFlag::Main
+            .union(CommandContextFlag::Srv)
+            .union(CommandContextFlag::Loc)
+    };
+
+    const ARG_FLAG: ngx_ext::CommandArgFlag = CommandArgFlag::Take1;
+
+    fn handler(cf: &ngx_conf_t, conf: &mut ModuleConfig) -> Result<(), ()> {
+        if let Some(args) = unsafe { cf.args.as_ref() } {
+            if let Some(ngx_arg) = unsafe { (args.elts as *mut ngx_str_t).add(1).as_ref() } {
+                let arg = ngx_arg.to_str();
+                // good old on/off
+                if arg.eq_ignore_ascii_case("on") {
+                    conf.port_mode = CheckSwitch::On(());
+                    conf.host_mode = CheckSwitch::On(HostCheckRigor::Normal);
+                } else if arg.eq_ignore_ascii_case("off") {
+                    conf.port_mode = CheckSwitch::Off;
+                    conf.host_mode = CheckSwitch::Off;
+                } else if arg.eq_ignore_ascii_case("strict") {
+                    conf.port_mode = CheckSwitch::On(());
+                    conf.host_mode = CheckSwitch::On(HostCheckRigor::Strict);
+                }
+                // port only setting
+                if arg.eq_ignore_ascii_case("port") {
+                    conf.port_mode = CheckSwitch::On(());
+                } else if arg.eq_ignore_ascii_case("no_port") {
+                    conf.port_mode = CheckSwitch::Off;
+                }
+                // host only setting
+                if arg.eq_ignore_ascii_case("host") {
+                    conf.host_mode = CheckSwitch::On(HostCheckRigor::Normal);
+                } else if arg.eq_ignore_ascii_case("strict_host") {
+                    conf.host_mode = CheckSwitch::On(HostCheckRigor::Strict);
+                } else if arg.eq_ignore_ascii_case("no_host") {
+                    conf.host_mode = CheckSwitch::Off;
+                }
+                return Ok(());
+            };
         }
+        Err(())
     }
-    std::ptr::null_mut()
 }
 
-http_request_handler!(strict_sni_access_handler, |request: &mut http::Request| {
-    ngx_log_debug_http!(request, "strict_sni module called");
+http_request_handler!(post_read_handler, |request: &http::Request| {
+    //let module = module_ref();
+
+    ngx_log_debug_http!(request, "strict_sni post_read_handler called");
+    //let a = request.set_module_ctx::<ModuleConfig>(unsafe { &strict_sni_module });
     if let Some(co) =
-        unsafe { request.get_module_loc_conf::<ModuleConfig>(&*addr_of!(strict_sni_module)) }
+        request.get_module_loc_conf::<ModuleConfig>(unsafe { &*addr_of!(strict_sni_module) })
     {
         ngx_log_debug_http!(request, "strict_sni module status: {:?}", co);
-        if let Some(v) = co.get_validator(&MODULE_DATA) {
+        if let Ok(v) = TryInto::<Validator>::try_into((co, MODULE_DATA.get().unwrap())) {
             ngx_log_debug_http!(request, "strict_sni module activated: {:?}", v);
-            match unsafe { request.connection().as_mut() } {
-                Some(conn) => {
-                    ngx_log_debug_http!(request, "strict_sni connection() succeed");
-                    match v.validate_request(conn, request) {
-                        Ok(()) => core::Status::NGX_OK,
-                        Err(err_status) => err_status.into(),
-                    }
-                }
-                None => {
-                    ngx_log_debug_http!(request, "strict_sni connection() nullptr");
-                    core::Status::NGX_ERROR
-                }
+            match v.validate_request(request) {
+                Ok(()) => core::Status::NGX_DECLINED,
+                Err(err_status) => err_status.into(),
             }
         } else {
-            // ngx_log_debug_http!(request, "strict_sni module off");
+            ngx_log_debug_http!(request, "strict_sni module off DECL");
             core::Status::NGX_DECLINED
         }
     } else {
-        ngx_log_debug_http!(request, "strict_sni config nullptr");
+        ngx_log_debug_http!(request, "strict_sni config nullptr ERR");
         core::Status::NGX_ERROR
     }
 });
+
+http_request_handler!(preaccess_handler, |request: &http::Request| {
+    ngx_log_debug_http!(request, "strict_sni preaccess_handler called");
+    //let a = request.get_module_ctx::<u32>(unsafe { &strict_sni_module });
+    if let Some(co) =
+        request.get_module_loc_conf::<ModuleConfig>(unsafe { &*addr_of!(strict_sni_module) })
+    {
+        ngx_log_debug_http!(request, "strict_sni module status: {:?}", co);
+        if let Ok(v) = TryInto::<Validator>::try_into((co, MODULE_DATA.get().unwrap())) {
+            ngx_log_debug_http!(request, "strict_sni module activated: {:?}", v);
+            match v.validate_request(request) {
+                Ok(()) => core::Status::NGX_DECLINED,
+                Err(err_status) => err_status.into(),
+            }
+        } else {
+            ngx_log_debug_http!(request, "strict_sni module off DECL");
+            core::Status::NGX_DECLINED
+        }
+    } else {
+        ngx_log_debug_http!(request, "strict_sni config nullptr ERR");
+        core::Status::NGX_ERROR
+    }
+});
+
+#[derive(Debug)]
+struct Validator<'a> {
+    port_mode: Option<()>,
+    host_mode: Option<&'a HostCheckRigor>,
+    common: &'static ModuleCommon,
+}
+
+struct ValidatorBuildError;
+
+impl<'a> TryFrom<(&'a ModuleConfig, &'static ModuleCommon)> for Validator<'a> {
+    type Error = ValidatorBuildError;
+
+    fn try_from(
+        (conf, common): (&'a ModuleConfig, &'static ModuleCommon),
+    ) -> Result<Self, Self::Error> {
+        let port_mode = match &conf.port_mode {
+            CheckSwitch::On(()) => Some(()),
+            _ => None,
+        };
+        let host_mode = match &conf.host_mode {
+            CheckSwitch::On(rigor) => Some(rigor),
+            _ => None,
+        };
+        if port_mode.is_some() || host_mode.is_some() {
+            return Ok(Validator {
+                port_mode,
+                host_mode,
+                common,
+            });
+        }
+        Err(ValidatorBuildError)
+    }
+}
 
 // memo:
 // nginx won't confuse listening ip and port
@@ -376,31 +316,27 @@ http_request_handler!(strict_sni_access_handler, |request: &mut http::Request| {
 //       - if strict: error
 //       - if not strict:
 
-impl Validator {
+impl Validator<'_> {
     fn get_var_host_str<'a>(&self, request: &'a Request) -> Option<&'a str> {
-        if let Some(host_slice) = solve_variable_ref(&self.common.host, request) {
+        if let Some(host_slice) = self.common.host.get(request) {
             return from_utf8(host_slice).ok();
         }
         None
     }
     fn get_var_scheme_str<'a>(&self, request: &'a Request) -> Option<&'a str> {
-        if let Some(scheme_slice) = solve_variable_ref(&self.common.scheme, request) {
+        if let Some(scheme_slice) = self.common.scheme.get(request) {
             return from_utf8(scheme_slice).ok();
         }
         None
     }
     fn get_var_sni_str<'a>(&self, request: &'a Request) -> Option<&'a str> {
-        if let Some(sni_slice) = solve_variable_ref(&self.common.sni, request) {
+        if let Some(sni_slice) = self.common.sni.get(request) {
             return from_utf8(sni_slice).ok();
         }
         None
     }
     #[inline(always)]
-    fn validate_request(
-        &self,
-        conn: &ngx_connection_t,
-        request: &Request,
-    ) -> Result<(), HTTPStatus> {
+    fn validate_request(&self, request: &Request) -> Result<(), HTTPStatus> {
         //let inn: &ngx_http_request_t = request.get_inner();
         // ngx_log_debug_http!(
         //     request,
@@ -423,7 +359,7 @@ impl Validator {
         // }
         // let a = inn.host_start;
 
-        let header_hp = if let Some(hhs) = get_host_header_str(request) {
+        let header_hp = if let Some(hhs) = request.host_header().and_then(|s| s.to_str().ok()) {
             let hp = extract_header_host_port(hhs);
             ngx_log_debug_http!(
                 request,
@@ -436,7 +372,7 @@ impl Validator {
             None
         };
 
-        let line_hp = if let Some(rls) = get_request_line_str(request) {
+        let line_hp = if let Some(rls) = request.request_line().and_then(|s| s.to_str().ok()) {
             let hp = extract_line_host_port(rls);
             ngx_log_debug_http!(
                 request,
@@ -452,7 +388,7 @@ impl Validator {
         match &self.port_mode {
             Some(()) => {
                 ngx_log_debug_http!(request, "strict_sni port check activated");
-                let conn_port = get_local_port(conn);
+                let conn_port = get_local_port(request);
                 let scheme_port: Option<u16> = match self.get_var_scheme_str(request) {
                     Some(str) => match str {
                         "http" => Some(80),
@@ -565,12 +501,14 @@ fn extract_line_host_port(rls: &str) -> Option<(&str, Option<u16>)> {
     None
 }
 
-fn get_local_port(conn: &ngx_connection_t) -> Option<u16> {
-    if let Some(addr) = unsafe { conn.local_sockaddr.as_mut() } {
-        // ngx_inet_get_port is implemented without the use of mutability, so no problem
-        let p = unsafe { ngx_inet_get_port(addr) };
-        if p != 0 {
-            return Some(p);
+fn get_local_port(request: &Request) -> Option<u16> {
+    if let Some(conn) = unsafe { request.connection().as_ref() } {
+        if let Some(addr) = unsafe { conn.local_sockaddr.as_mut() } {
+            // ngx_inet_get_port is implemented without the use of mutability, so no problem
+            let p = unsafe { ngx_inet_get_port(addr) };
+            if p != 0 {
+                return Some(p);
+            }
         }
     }
     None
