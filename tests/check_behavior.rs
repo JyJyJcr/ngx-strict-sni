@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use ngx::test_util::{target_path, Nginx};
+    use ngx::test_util::{target_path, NginxBuilder};
     use std::env::{consts::*, current_dir};
 
     const TEST_NGINX_CONF: &str = "tests/nginx.conf";
@@ -53,7 +53,7 @@ mod tests {
     #[test]
     fn test() {
         // get nginx controller
-        let mut nginx = Nginx::default();
+        let mut nginx = NginxBuilder::default().build();
 
         // search conf and module
         let current_dir = current_dir().expect("Unable to get current directory");
@@ -66,7 +66,11 @@ mod tests {
             env!("CARGO_PKG_NAME").replace('-', "_"),
             DLL_SUFFIX
         );
-        let module_path = target_path(&module_basename).expect("target dir not found");
+        let module_path_from = target_path(&module_basename).expect("target dir not found");
+
+        let module_path_rel_to_str = format!("{}", module_basename);
+
+        //let module_path_rel_to: PathBuf = module_path_rel_to_str.into();
 
         assert!(
             test_config_path.is_file(),
@@ -75,9 +79,9 @@ mod tests {
             current_dir.to_string_lossy()
         );
         assert!(
-            module_path.is_file(),
+            module_path_from.is_file(),
             "Module not found: {}\nCurrent directory: {}",
-            module_path.to_string_lossy(),
+            module_path_from.to_string_lossy(),
             current_dir.to_string_lossy()
         );
         assert!(
@@ -95,21 +99,27 @@ mod tests {
 
         // put them into the nginx dir
         nginx
-            .copy_config(&test_config_path)
+            .copy_main_config(&test_config_path)
             .expect(format!("Unable to load config file: {}", test_config_path.display()).as_str());
         nginx
-            .copy_config(&test_pem_path)
+            .copy_config(&test_pem_path, "localhost.pem")
             .expect(format!("Unable to load PEM file: {}", test_pem_path.display()).as_str());
         nginx
-            .copy_config(&test_key_path)
+            .copy_config(&test_key_path, "localhost.key")
             .expect(format!("Unable to load KEY file: {}", test_key_path.display()).as_str());
         nginx
-            .copy_module(&module_path)
-            .expect(format!("Unable to load module dylib: {}", module_path.display()).as_str());
+            .copy_module(&module_path_from, &module_path_rel_to_str)
+            .expect(
+                format!(
+                    "Unable to copy module dylib: {}",
+                    module_path_from.display()
+                )
+                .as_str(),
+            );
         nginx
             .create_config_from_str(
                 "load_module.conf",
-                format!("load_module modules/{};", module_basename).as_str(),
+                format!("load_module {};", &module_path_rel_to_str).as_str(),
             )
             .expect(format!("Unable to create config file").as_str());
 
