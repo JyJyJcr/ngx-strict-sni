@@ -14,16 +14,6 @@ pub struct VariableHook(ngx_uint_t);
 pub struct VariableHookGetError;
 
 impl VariableHook {
-    pub fn hook(cf: &ngx_conf_t, name: &ngx_str_t) -> Result<Self, VariableHookGetError> {
-        let r = unsafe {
-            ngx_http_get_variable_index(cf as *const _ as *mut _, name as *const _ as *mut _)
-        };
-        if r == NGX_ERROR as ngx_int_t {
-            Err(VariableHookGetError)
-        } else {
-            Ok(VariableHook(r as ngx_uint_t))
-        }
-    }
     pub fn get<'a>(&self, req: &'a Request) -> Option<&'a [u8]> {
         let r =
             unsafe { ngx_http_get_flushed_variable(req.get_inner() as *const _ as *mut _, self.0) };
@@ -36,6 +26,22 @@ impl VariableHook {
             }
         }
         None
+    }
+}
+
+pub trait GetHook {
+    fn hook(&self, name: &ngx_str_t) -> Result<VariableHook, VariableHookGetError>;
+}
+impl GetHook for ngx_conf_t {
+    fn hook(&self, name: &ngx_str_t) -> Result<VariableHook, VariableHookGetError> {
+        let r = unsafe {
+            ngx_http_get_variable_index(self as *const _ as *mut _, name as *const _ as *mut _)
+        };
+        if r == NGX_ERROR as ngx_int_t {
+            Err(VariableHookGetError)
+        } else {
+            Ok(VariableHook(r as ngx_uint_t))
+        }
     }
 }
 

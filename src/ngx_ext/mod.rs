@@ -1,23 +1,16 @@
-pub mod request;
+pub mod http;
 pub mod str;
-pub mod variable;
 
 use bitflags::bitflags;
 use ngx::{
     core::NGX_CONF_ERROR,
     ffi::{
-        nginx_version, ngx_command_t, ngx_conf_t, ngx_cycle_t, ngx_http_module_t, ngx_int_t,
-        ngx_log_t, ngx_module_t, ngx_str_t, ngx_uint_t, NGX_CONF_TAKE1, NGX_CONF_TAKE2,
-        NGX_HTTP_LOC_CONF, NGX_HTTP_MAIN_CONF, NGX_HTTP_MODULE, NGX_HTTP_SRV_CONF,
-        NGX_RS_HTTP_LOC_CONF_OFFSET, NGX_RS_HTTP_MAIN_CONF_OFFSET, NGX_RS_HTTP_SRV_CONF_OFFSET,
-        NGX_RS_MODULE_SIGNATURE,
+        nginx_version, ngx_command_t, ngx_conf_t, ngx_cycle_t, ngx_int_t, ngx_log_t, ngx_module_t,
+        ngx_str_t, ngx_uint_t, NGX_CONF_TAKE1, NGX_CONF_TAKE2, NGX_HTTP_LOC_CONF,
+        NGX_HTTP_MAIN_CONF, NGX_HTTP_MODULE, NGX_HTTP_SRV_CONF, NGX_RS_MODULE_SIGNATURE,
     },
-    http::HTTPModule,
 };
-use std::{
-    ffi::{c_char, c_void},
-    marker::PhantomData,
-};
+use std::ffi::{c_char, c_void};
 
 pub enum ModuleType {
     HTTP,
@@ -42,12 +35,20 @@ impl<const N: usize> CommandList<N> {
 #[macro_export]
 macro_rules! command_list {
     ($name:ident = [$( $cmd:expr ),*];) => {
-        const $name:CommandList<{ngx::count!($( $cmd, )+) + 1}> =CommandList::__new([
+        const $name:CommandList<{$($crate::one!($cmd) + )+ 1}> =CommandList::__new([
             $($cmd,)*
             ngx_null_command!()
         ]);
     };
 }
+
+#[macro_export]
+macro_rules! one {
+    ($cmd:expr) => {
+        1usize
+    };
+}
+
 // trait Command {}
 
 // const fn into_command();
@@ -172,19 +173,6 @@ impl<C: 'static, const N: usize> NgxModuleBuilder<C, N> {
     }
 }
 
-pub const fn ngx_http_module_ctx<M: HTTPModule>() -> ngx_http_module_t {
-    ngx_http_module_t {
-        preconfiguration: Some(M::preconfiguration),
-        postconfiguration: Some(M::postconfiguration),
-        create_main_conf: Some(M::create_main_conf),
-        init_main_conf: Some(M::init_main_conf),
-        create_srv_conf: Some(M::create_srv_conf),
-        merge_srv_conf: Some(M::merge_srv_conf),
-        create_loc_conf: Some(M::create_loc_conf),
-        merge_loc_conf: Some(M::merge_loc_conf),
-    }
-}
-
 bitflags! {
     pub struct CommandContextFlag:u32 {
         const Main = NGX_HTTP_MAIN_CONF;
@@ -235,21 +223,4 @@ extern "C" fn command_handler<C: Command>(
 pub trait CommandCtx {
     type Conf;
     const OFFSET: ngx_uint_t;
-}
-
-pub struct LocCtx<M: HTTPModule>(PhantomData<M>);
-pub struct SrvCtx<M: HTTPModule>(PhantomData<M>);
-pub struct MainCtx<M: HTTPModule>(PhantomData<M>);
-
-impl<M: HTTPModule> CommandCtx for LocCtx<M> {
-    type Conf = M::LocConf;
-    const OFFSET: ngx_uint_t = NGX_RS_HTTP_LOC_CONF_OFFSET;
-}
-impl<M: HTTPModule> CommandCtx for SrvCtx<M> {
-    type Conf = M::SrvConf;
-    const OFFSET: ngx_uint_t = NGX_RS_HTTP_SRV_CONF_OFFSET;
-}
-impl<M: HTTPModule> CommandCtx for MainCtx<M> {
-    type Conf = M::MainConf;
-    const OFFSET: ngx_uint_t = NGX_RS_HTTP_MAIN_CONF_OFFSET;
 }
