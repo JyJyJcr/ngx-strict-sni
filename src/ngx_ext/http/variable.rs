@@ -2,8 +2,8 @@ use std::ptr::slice_from_raw_parts;
 
 use ngx::{
     ffi::{
-        ngx_conf_t, ngx_http_get_flushed_variable, ngx_http_get_variable_index, ngx_int_t,
-        ngx_str_t, ngx_uint_t, NGX_ERROR,
+        ngx_conf_t, ngx_http_get_flushed_variable, ngx_http_get_indexed_variable,
+        ngx_http_get_variable_index, ngx_int_t, ngx_str_t, ngx_uint_t, NGX_ERROR,
     },
     http::Request,
 };
@@ -17,6 +17,19 @@ impl VariableHook {
     pub fn get<'a>(&self, req: &'a Request) -> Option<&'a [u8]> {
         let r =
             unsafe { ngx_http_get_flushed_variable(req.get_inner() as *const _ as *mut _, self.0) };
+        if let Some(v) = unsafe { r.as_ref() } {
+            if v.not_found() == 0 {
+                let ptr = slice_from_raw_parts(v.data, v.len() as usize);
+                if let Some(slice) = unsafe { ptr.as_ref() } {
+                    return Some(slice);
+                }
+            }
+        }
+        None
+    }
+    pub fn get_cache<'a>(&self, req: &'a Request) -> Option<&'a [u8]> {
+        let r =
+            unsafe { ngx_http_get_indexed_variable(req.get_inner() as *const _ as *mut _, self.0) };
         if let Some(v) = unsafe { r.as_ref() } {
             if v.not_found() == 0 {
                 let ptr = slice_from_raw_parts(v.data, v.len() as usize);

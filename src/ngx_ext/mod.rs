@@ -13,12 +13,12 @@ use ngx::{
 use std::ffi::{c_char, c_void};
 
 pub enum ModuleType {
-    HTTP,
+    Http,
 }
 impl ModuleType {
     const fn const_into(self) -> ngx_uint_t {
         match self {
-            ModuleType::HTTP => NGX_HTTP_MODULE as ngx_uint_t,
+            ModuleType::Http => NGX_HTTP_MODULE as ngx_uint_t,
         }
     }
 }
@@ -37,7 +37,7 @@ macro_rules! command_list {
     ($name:ident = [$( $cmd:expr ),*];) => {
         const $name:CommandList<{$($crate::one!($cmd) + )+ 1}> =CommandList::__new([
             $($cmd,)*
-            ngx_null_command!()
+            ngx::ngx_null_command!()
         ]);
     };
 }
@@ -94,8 +94,8 @@ impl<C: 'static, const N: usize> NgxModuleBuilder<C, N> {
     }
     pub const fn build(self) -> ngx_module_t {
         ngx_module_t {
-            ctx_index: ngx_uint_t::max_value(),
-            index: ngx_uint_t::max_value(),
+            ctx_index: ngx_uint_t::MAX,
+            index: ngx_uint_t::MAX,
             name: std::ptr::null_mut(),
             spare0: 0,
             spare1: 0,
@@ -124,7 +124,6 @@ impl<C: 'static, const N: usize> NgxModuleBuilder<C, N> {
             spare_hook7: 0,
         }
     }
-    #[allow(dead_code)]
     pub const fn init_master(
         mut self,
         f: unsafe extern "C" fn(log: *mut ngx_log_t) -> ngx_int_t,
@@ -132,7 +131,6 @@ impl<C: 'static, const N: usize> NgxModuleBuilder<C, N> {
         self.init_master = Some(f);
         self
     }
-    #[allow(dead_code)]
     pub const fn init_module(
         mut self,
         f: unsafe extern "C" fn(cycle: *mut ngx_cycle_t) -> ngx_int_t,
@@ -140,7 +138,6 @@ impl<C: 'static, const N: usize> NgxModuleBuilder<C, N> {
         self.init_module = Some(f);
         self
     }
-    #[allow(dead_code)]
     pub const fn init_process(
         mut self,
         f: unsafe extern "C" fn(cycle: *mut ngx_cycle_t) -> ngx_int_t,
@@ -148,7 +145,6 @@ impl<C: 'static, const N: usize> NgxModuleBuilder<C, N> {
         self.init_process = Some(f);
         self
     }
-    #[allow(dead_code)]
     pub const fn init_thread(
         mut self,
         f: unsafe extern "C" fn(cycle: *mut ngx_cycle_t) -> ngx_int_t,
@@ -156,17 +152,14 @@ impl<C: 'static, const N: usize> NgxModuleBuilder<C, N> {
         self.init_thread = Some(f);
         self
     }
-    #[allow(dead_code)]
     pub const fn exit_thread(mut self, f: unsafe extern "C" fn(cycle: *mut ngx_cycle_t)) -> Self {
         self.exit_thread = Some(f);
         self
     }
-    #[allow(dead_code)]
     pub const fn exit_process(mut self, f: unsafe extern "C" fn(cycle: *mut ngx_cycle_t)) -> Self {
         self.exit_process = Some(f);
         self
     }
-    #[allow(dead_code)]
     pub const fn exit_master(mut self, f: unsafe extern "C" fn(cycle: *mut ngx_cycle_t)) -> Self {
         self.exit_master = Some(f);
         self
