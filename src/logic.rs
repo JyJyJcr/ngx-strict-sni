@@ -1,4 +1,4 @@
-use std::str::from_utf8;
+use core::str::from_utf8;
 
 // use ngx::ffi::{
 //     nginx_version, ngx_array_push, ngx_command_t, ngx_conf_s, ngx_conf_t, ngx_connection_t,
@@ -21,43 +21,45 @@ use ngx::{
 };
 
 use crate::{
-    ngx_ext::http::{request::RequestExt, variable::VariableHook, HTTPHandler, Phase},
+    ngx_ext::http::{request::RequestExt, variable::VariableHook, HttpHandler, Phase},
     util::{parse_host_header, parse_request_line},
-    CheckSwitch, HostCheckRigor, StrictSniCommon, StrictSniHttpModule, ValidationConfig,
-    MODULE_DATA,
+    CheckSwitch, HostCheckRigor, StrictSniCommon, StrictSniHttpModuleImpl, ValidationConfig,
 };
 
 pub(crate) struct PostReadHandler;
-impl HTTPHandler for PostReadHandler {
-    type Module = StrictSniHttpModule;
-
+impl HttpHandler for PostReadHandler {
     const PHASE: Phase = Phase::PostRead;
 
     fn handle(request: &mut Request) -> Status {
         ngx_log_debug_http!(request, "strict_sni post_read_handler called");
-        let aner: Analyzer = MODULE_DATA.get().unwrap().into();
-        if let Ok(analysis) = aner.analyze(request) {
-            ngx_log_debug_http!(request, "strict_sni analyze succ");
-            let mut pool = request.pool();
-            let po = pool.allocate(analysis);
-            if let Some(analysis) = unsafe { po.as_ref() } {
-                ngx_log_debug_http!(request, "strict_sni pool alloc succ");
-                request.set_ctx::<StrictSniHttpModule>(analysis);
-                if let Some(config) = request.main_conf::<StrictSniHttpModule>() {
-                    ngx_log_debug_http!(request, "strict_sni direct filter config: {:?}", config);
-                    let val: Validator = config.into();
-                    return match val.validate(request, analysis) {
-                        Ok(()) => Status::NGX_DECLINED,
-                        Err(err_status) => err_status.into(),
-                    };
+        if let Some((common, main)) = request.main_conf::<StrictSniHttpModuleImpl>() {
+            ngx_log_debug_http!(request, "strict_sni main config: {:?}", main);
+            if let Some(common) = common {
+                ngx_log_debug_http!(request, "strict_sni common: {:?}", common);
+                let aner: Analyzer = common.into();
+                if let Ok(analysis) = aner.analyze(request) {
+                    ngx_log_debug_http!(request, "strict_sni analyze succ");
+                    let mut pool = request.pool();
+                    let po = pool.allocate(analysis);
+                    if let Some(analysis) = unsafe { po.as_ref() } {
+                        ngx_log_debug_http!(request, "strict_sni pool alloc succ");
+                        request.set_ctx::<StrictSniHttpModuleImpl>(analysis);
+                        let val: Validator = main.into();
+                        return match val.validate(request, analysis) {
+                            Ok(()) => Status::NGX_DECLINED,
+                            Err(err_status) => err_status.into(),
+                        };
+                    } else {
+                        ngx_log_debug_http!(request, "strict_sni pool alloc nullptr ERR");
+                    }
                 } else {
-                    ngx_log_debug_http!(request, "strict_sni direct filter config nullptr ERR");
+                    ngx_log_debug_http!(request, "strict_sni analyze fail ERR");
                 }
             } else {
-                ngx_log_debug_http!(request, "strict_sni pool alloc nullptr ERR");
+                ngx_log_debug_http!(request, "strict_sni common None ERR");
             }
         } else {
-            ngx_log_debug_http!(request, "strict_sni analyze fail ERR");
+            ngx_log_debug_http!(request, "strict_sni main config nullptr ERR");
         }
 
         Status::NGX_ERROR
@@ -65,17 +67,15 @@ impl HTTPHandler for PostReadHandler {
 }
 
 pub(crate) struct PreaccessHandler;
-impl HTTPHandler for PreaccessHandler {
-    type Module = StrictSniHttpModule;
-
-    const PHASE: Phase = Phase::Preaccess;
+impl HttpHandler for PreaccessHandler {
+    const PHASE: Phase = Phase::PreAccess;
 
     fn handle(request: &mut Request) -> Status {
         ngx_log_debug_http!(request, "strict_sni preaccess_handler called");
 
-        if let Some(config) = request.loc_conf::<StrictSniHttpModule>() {
+        if let Some(config) = request.loc_conf::<StrictSniHttpModuleImpl>() {
             ngx_log_debug_http!(request, "strict_sni config: {:?}", config);
-            if let Some(analysis) = request.get_ctx::<StrictSniHttpModule>() {
+            if let Some(analysis) = request.get_ctx::<StrictSniHttpModuleImpl>() {
                 ngx_log_debug_http!(request, "strict_sni analysis: {:?}", analysis);
                 //request.set_ctx::<StrictSniHttpModule>(an);
 

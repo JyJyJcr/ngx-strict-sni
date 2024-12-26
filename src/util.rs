@@ -1,4 +1,4 @@
-use std::str;
+use core::str;
 
 use fluent_uri::UriRef;
 

@@ -1,4 +1,4 @@
-use std::ptr::slice_from_raw_parts;
+use core::ptr::slice_from_raw_parts;
 
 use ngx::{
     ffi::{
