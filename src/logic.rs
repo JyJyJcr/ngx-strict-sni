@@ -16,14 +16,14 @@ use core::str::from_utf8;
 
 use ngx::{
     core::Status,
-    http::{HTTPStatus, Request},
+    http::{HTTPStatus, HttpHandler, Phase, Request},
     ngx_log_debug_http,
 };
 
 use crate::{
-    ngx_ext::http::{request::RequestExt, variable::VariableHook, HttpHandler, Phase},
+    ngx_ext::http::{request::RequestExt, variable::VariableHook},
     util::{parse_host_header, parse_request_line},
-    CheckSwitch, HostCheckRigor, StrictSniCommon, StrictSniHttpModuleImpl, ValidationConfig,
+    CheckSwitch, HostCheckRigor, StrictSniCommon, StrictSniHttpModule, ValidationConfig,
 };
 
 pub(crate) struct PostReadHandler;
@@ -32,7 +32,7 @@ impl HttpHandler for PostReadHandler {
 
     fn handle(request: &mut Request) -> Status {
         ngx_log_debug_http!(request, "strict_sni post_read_handler called");
-        if let Some((common, main)) = request.main_conf::<StrictSniHttpModuleImpl>() {
+        if let Some((common, main)) = request.main_conf::<StrictSniHttpModule>() {
             ngx_log_debug_http!(request, "strict_sni main config: {:?}", main);
             if let Some(common) = common {
                 ngx_log_debug_http!(request, "strict_sni common: {:?}", common);
@@ -43,7 +43,7 @@ impl HttpHandler for PostReadHandler {
                     let po = pool.allocate(analysis);
                     if let Some(analysis) = unsafe { po.as_ref() } {
                         ngx_log_debug_http!(request, "strict_sni pool alloc succ");
-                        request.set_ctx::<StrictSniHttpModuleImpl>(analysis);
+                        request.set_ctx::<StrictSniHttpModule>(analysis);
                         let val: Validator = main.into();
                         return match val.validate(request, analysis) {
                             Ok(()) => Status::NGX_DECLINED,
@@ -73,9 +73,9 @@ impl HttpHandler for PreaccessHandler {
     fn handle(request: &mut Request) -> Status {
         ngx_log_debug_http!(request, "strict_sni preaccess_handler called");
 
-        if let Some(config) = request.loc_conf::<StrictSniHttpModuleImpl>() {
+        if let Some(config) = request.loc_conf::<StrictSniHttpModule>() {
             ngx_log_debug_http!(request, "strict_sni config: {:?}", config);
-            if let Some(analysis) = request.get_ctx::<StrictSniHttpModuleImpl>() {
+            if let Some(analysis) = request.get_ctx::<StrictSniHttpModule>() {
                 ngx_log_debug_http!(request, "strict_sni analysis: {:?}", analysis);
                 //request.set_ctx::<StrictSniHttpModule>(an);
 

@@ -1,12 +1,11 @@
 use ngx::{
     core::NgxStr,
     ffi::{ngx_connection_t, ngx_inet_get_port},
-    http::Request,
+    http::{HttpModule, HttpModuleSkel, InitConfSetting, MergeConfSetting, Request},
+    module::Module,
 };
 
-use crate::ngx_ext::{str::try_to_ref, NgxModule};
-
-use super::NgxHttpModuleImpl;
+use crate::ngx_ext::str::try_to_ref;
 
 pub trait RequestExt {
     // note: you can elide lifetime parameter if the returned ref's lifetime is same to self.
@@ -15,11 +14,11 @@ pub trait RequestExt {
     fn request_line(&self) -> Option<&NgxStr>;
     fn connection(&self) -> Option<&Connection>;
 
-    fn main_conf<M: NgxHttpModuleImpl>(&self) -> Option<&M::MainConf>;
-    fn srv_conf<M: NgxHttpModuleImpl>(&self) -> Option<&M::SrvConf>;
-    fn loc_conf<M: NgxHttpModuleImpl>(&self) -> Option<&M::LocConf>;
-    fn get_ctx<M: NgxHttpModuleImpl>(&self) -> Option<&M::Ctx>;
-    fn set_ctx<M: NgxHttpModuleImpl>(&self, ctx: &M::Ctx);
+    fn main_conf<M: HttpModule>(&self) -> Option<&<M::MainConfSetting as InitConfSetting>::Conf>;
+    fn srv_conf<M: HttpModule>(&self) -> Option<&<M::SrvConfSetting as MergeConfSetting>::Conf>;
+    fn loc_conf<M: HttpModule>(&self) -> Option<&<M::LocConfSetting as MergeConfSetting>::Conf>;
+    fn get_ctx<M: HttpModule>(&self) -> Option<&M::Ctx>;
+    fn set_ctx<M: HttpModule>(&self, ctx: &M::Ctx);
 
     fn is_internal(&self) -> bool;
 }
@@ -28,28 +27,34 @@ impl RequestExt for Request {
     fn host_header(&self) -> Option<&NgxStr> {
         let inner = self.get_inner();
         if let Some(elt) = unsafe { inner.headers_in.host.as_ref() } {
-            try_to_ref(elt.value)
+            Some(try_to_ref(elt.value))
         } else {
             None
         }
     }
     fn request_line(&self) -> Option<&NgxStr> {
         let inner = self.get_inner();
-        try_to_ref(inner.request_line)
+        Some(try_to_ref(inner.request_line))
     }
 
-    fn main_conf<I: NgxHttpModuleImpl>(&self) -> Option<&I::MainConf> {
-        self.get_module_main_conf::<I::MainConf>(<I::Module as NgxModule>::module())
+    fn main_conf<M: HttpModule>(&self) -> Option<&<M::MainConfSetting as InitConfSetting>::Conf> {
+        self.get_module_main_conf::<<M::MainConfSetting as InitConfSetting>::Conf>(
+            unsafe { HttpModuleSkel::<M>::SELF.to_ref() }.inner(),
+        )
     }
-    fn srv_conf<I: NgxHttpModuleImpl>(&self) -> Option<&I::SrvConf> {
-        self.get_module_srv_conf::<I::SrvConf>(<I::Module as NgxModule>::module())
+    fn srv_conf<M: HttpModule>(&self) -> Option<&<M::SrvConfSetting as MergeConfSetting>::Conf> {
+        self.get_module_srv_conf::<<M::SrvConfSetting as MergeConfSetting>::Conf>(
+            unsafe { HttpModuleSkel::<M>::SELF.to_ref() }.inner(),
+        )
     }
-    fn loc_conf<I: NgxHttpModuleImpl>(&self) -> Option<&I::LocConf> {
-        self.get_module_loc_conf::<I::LocConf>(<I::Module as NgxModule>::module())
+    fn loc_conf<M: HttpModule>(&self) -> Option<&<M::LocConfSetting as MergeConfSetting>::Conf> {
+        self.get_module_loc_conf::<<M::LocConfSetting as MergeConfSetting>::Conf>(
+            unsafe { HttpModuleSkel::<M>::SELF.to_ref() }.inner(),
+        )
     }
 
-    fn get_ctx<I: NgxHttpModuleImpl>(&self) -> Option<&I::Ctx> {
-        self.get_module_ctx::<I::Ctx>(<I::Module as NgxModule>::module())
+    fn get_ctx<M: HttpModule>(&self) -> Option<&M::Ctx> {
+        self.get_module_ctx::<M::Ctx>(unsafe { HttpModuleSkel::<M>::SELF.to_ref() }.inner())
     }
     // fn get_ctx_mut<I: NgxHttpModuleImpl>(&mut self) -> Option<&mut I::Ctx> {
     //     let p = unsafe {
@@ -61,10 +66,10 @@ impl RequestExt for Request {
     //     let ctx = p.cast::<I::Ctx>();
     //     unsafe { ctx.as_mut() }
     // }
-    fn set_ctx<I: NgxHttpModuleImpl>(&self, ctx: &I::Ctx) {
+    fn set_ctx<M: HttpModule>(&self, ctx: &M::Ctx) {
         self.set_module_ctx(
             ctx as *const _ as *mut _,
-            <I::Module as NgxModule>::module(),
+            unsafe { HttpModuleSkel::<M>::SELF.to_ref() }.inner(),
         )
     }
     fn connection(&self) -> Option<&Connection> {

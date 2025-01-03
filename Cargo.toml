@@ -11,15 +11,16 @@ description = "Strict SNI validator for Nginx"
 crate-type = ["cdylib"]
 
 [dependencies]
-ngx = { git = "https://github.com/JyJyJcr/ngx-rust",branch="integ_test" }
-#ngx = { path = "../ngx-rust"}
+ngx = { git = "https://github.com/JyJyJcr/ngx-rust",branch="nightly" }
+#ngx = { path = "../ngx-rust" , default-features = false, features=["std","vendored"] }
 fluent-uri = "0.3.2"
 bitflags = "2.6.0"
 
 
 [dev-dependencies]
 curl = "0.4.46"
-ngx = { git = "https://github.com/JyJyJcr/ngx-rust",branch="integ_test", features=["test_util"] }
+ngx = { git = "https://github.com/JyJyJcr/ngx-rust",branch="nightly", features=["test_util"] }
+#ngx = { path = "../ngx-rust" , default-features = false, features=["std","vendored", "test_util"] }
 
 [package.metadata.deb]
 name = "libnginx-mod-http-ssl-strict-sni"

@@ -1,4 +1,4 @@
-//#![no_std]
+//#![cfg_attr(not(test), no_std)]
 
 mod logic;
 
@@ -7,38 +7,67 @@ mod ngx_ext;
 
 mod util;
 
-use core::ptr::addr_of;
+use core::ffi::CStr;
 use core::ptr::addr_of_mut;
+
 use logic::{Analysis, PostReadHandler, PreaccessHandler};
-use ngx::ffi::{ngx_conf_t, ngx_http_module_t, ngx_module_t, ngx_str_t};
-use ngx::http::MergeConfigError;
-use ngx::{core::Status, http};
-use ngx::{ngx_modules, ngx_string};
-use ngx_ext::http::variable::GetHook;
-use ngx_ext::http::{ngx_http_module_ctx, variable::VariableHook, LocCtx, MainCtx};
-use ngx_ext::http::{
-    ConfInitManager, DefaultConfManager, NgxHttpModule, NgxHttpModuleImpl, SetHttpHandler,
+use ngx::ffi::{ngx_conf_t, ngx_str_t};
+use ngx::http::{
+    ConfCreateError, ConfInitError, ConfigurationDelegate, DefaultMerge, HttpLocConf, HttpMainConf,
+    InitConfSetting, Merge, MergeConfigError, NgxHttpModule, NgxHttpModuleCommands,
+    NgxHttpModuleCommandsRefMut, SetHttpHandler,
 };
-use ngx_ext::{ngx_module, CommandArgFlag, CommandContextFlag, NgxCommand, NgxModule};
+use ngx::module::{
+    Command, CommandArgFlag, CommandArgFlagSet, CommandContextFlag, CommandContextFlagSet,
+    CommandError, NgxModuleCommandsBuilder,
+};
+use ngx::util::StaticRefMut;
+use ngx::{arg_flags, context_flags, ngx_string};
+use ngx::{
+    exhibit_modules,
+    http::{HttpModule, HttpModuleSkel},
+};
+use ngx_ext::http::variable::{GetHook, VariableHook};
 
 // module exporter
 // this macro uses variable name directly.
-ngx_modules!(strict_sni_module);
+exhibit_modules!(HttpModuleSkel<StrictSniHttpModule>);
 
-// so here we surpress non_upper_case warning.
-#[allow(non_upper_case_globals)]
-static mut strict_sni_module: ngx_module_t = ngx_module::<StrictSniModule>(
-    unsafe { &mut *addr_of_mut!(STRICT_SNI_MODULE_CTX) },
-    unsafe { (&mut *addr_of_mut!(STRICT_SNI_COMMAND_LIST)).ptr() },
-);
+struct StrictSniHttpModule;
 
-struct StrictSniModule;
-impl NgxModule for StrictSniModule {
-    type Impl = NgxHttpModule<StrictSniHttpModuleImpl>;
+impl HttpModule for StrictSniHttpModule {
+    const SELF: StaticRefMut<NgxHttpModule<Self>> = {
+        static mut MODULE: NgxHttpModule<StrictSniHttpModule> = NgxHttpModule::new();
+        unsafe { StaticRefMut::from_mut(&mut *addr_of_mut!(MODULE)) }
+    };
 
-    fn module() -> &'static ngx_module_t {
-        unsafe { &*addr_of!(strict_sni_module) }
-    }
+    const NAME: &'static CStr = c"strict_sni_module";
+
+    const COMMANDS: NgxHttpModuleCommandsRefMut<Self> = {
+        static mut COMMANDS: NgxHttpModuleCommands<StrictSniHttpModule, 3> =
+            NgxModuleCommandsBuilder::new()
+                .add::<StrictSniCommand>()
+                .add::<DirectFilterCommand>()
+                .build();
+        unsafe { NgxHttpModuleCommandsRefMut::from_mut(&mut *addr_of_mut!(COMMANDS)) }
+    };
+
+    type MasterInitializer = ();
+
+    type ModuleDelegate = ();
+
+    type ProcessDelegate = ();
+
+    type ThreadDelegate = ();
+
+    type PreConfiguration = ();
+
+    type PostConfiguration = StrictSniPostConfig;
+
+    type MainConfSetting = StrictSniMainConfManager;
+    type SrvConfSetting = DefaultMerge<()>;
+    type LocConfSetting = DefaultMerge<ValidationConfig>;
+    type Ctx = Analysis;
     // fn init_module(cycle: &mut ngx_cycle_t) -> ngx_int_t {
     //     ngx_log_debug!(cycle.log, "strict_sni module init_master called");
     //     if !cycle.modules.is_null() {
@@ -67,55 +96,9 @@ impl NgxModule for StrictSniModule {
     // }
 }
 
-command_list!(
-    static mut STRICT_SNI_COMMAND_LIST: CommandList<StrictSniModule> =
-        [StrictSniCommand, DirectFilterCommand];
-);
-
-static mut STRICT_SNI_MODULE_CTX: ngx_http_module_t =
-    ngx_http_module_ctx::<StrictSniHttpModuleImpl>();
-
-#[derive(Debug)]
-struct StrictSniCommon {
-    host: VariableHook,
-    scheme: VariableHook,
-    sni: VariableHook,
-}
-
-//static MODULE_DATA: OnceLock<StrictSniCommon> = OnceLock::new();
-
-struct StrictSniMainConfManager;
-impl ConfInitManager for StrictSniMainConfManager {
-    type Conf = (Option<StrictSniCommon>, ValidationConfig);
-
-    fn create(_: &mut ngx_conf_t) -> Result<Self::Conf, ()> {
-        Ok(Default::default())
-    }
-
-    fn init(cf: &mut ngx_conf_t, (common, _): &mut Self::Conf) -> Result<(), ()> {
-        let vr_host = cf.hook(&ngx_string!("host")).map_err(|_| ())?;
-        let vr_scheme = cf.hook(&ngx_string!("scheme")).map_err(|_| ())?;
-        let vr_sni = cf.hook(&ngx_string!("ssl_server_name")).map_err(|_| ())?;
-        *common = Some(StrictSniCommon {
-            host: vr_host,
-            scheme: vr_scheme,
-            sni: vr_sni,
-        });
-        Ok(())
-    }
-}
-
-struct StrictSniHttpModuleImpl;
-impl NgxHttpModuleImpl for StrictSniHttpModuleImpl {
-    type Module = StrictSniModule;
-    type MainConf = (Option<StrictSniCommon>, ValidationConfig);
-    type SrvConf = ();
-    type LocConf = ValidationConfig;
-    type MainConfManager = StrictSniMainConfManager;
-    type SrvConfManager = DefaultConfManager<()>;
-    type LocConfManager = DefaultConfManager<Self::LocConf>;
-    type Ctx = Analysis;
-    fn postconfiguration(cf: &mut ngx_conf_t) -> Result<(), Status> {
+struct StrictSniPostConfig;
+impl ConfigurationDelegate for StrictSniPostConfig {
+    fn configuration(cf: &mut ngx_conf_t) -> Result<(), ngx::core::Status> {
         // if let Some(log) = unsafe { cf.log.as_mut() } {
         //     ngx_log_debug!(log, "strict_sni check pool");
         //     if let Some(cy) = unsafe { cf.cycle.as_ref() } {
@@ -137,6 +120,36 @@ impl NgxHttpModuleImpl for StrictSniHttpModuleImpl {
         // let pool = unsafe { cf.pool.as_mut() }.ok_or(Status::NGX_ERROR)?;
         // let mut pool = unsafe { Pool::from_ngx_pool(pool) };
         // pool.allocate(common);
+        Ok(())
+    }
+}
+
+#[derive(Debug)]
+struct StrictSniCommon {
+    host: VariableHook,
+    scheme: VariableHook,
+    sni: VariableHook,
+}
+
+struct StrictSniMainConfManager;
+impl InitConfSetting for StrictSniMainConfManager {
+    type Conf = (Option<StrictSniCommon>, ValidationConfig);
+
+    fn create(_: &mut ngx_conf_t) -> Result<Self::Conf, ConfCreateError> {
+        Ok(Default::default())
+    }
+
+    fn init(cf: &mut ngx_conf_t, (common, _): &mut Self::Conf) -> Result<(), ConfInitError> {
+        let vr_host = cf.hook(&ngx_string!("host")).map_err(|_| ConfInitError)?;
+        let vr_scheme = cf.hook(&ngx_string!("scheme")).map_err(|_| ConfInitError)?;
+        let vr_sni = cf
+            .hook(&ngx_string!("ssl_server_name"))
+            .map_err(|_| ConfInitError)?;
+        *common = Some(StrictSniCommon {
+            host: vr_host,
+            scheme: vr_scheme,
+            sni: vr_sni,
+        });
         Ok(())
     }
 }
@@ -173,7 +186,7 @@ enum HostCheckRigor {
 
 // }
 
-impl http::Merge for ValidationConfig {
+impl Merge for ValidationConfig {
     fn merge(&mut self, prev: &ValidationConfig) -> Result<(), MergeConfigError> {
         if let CheckSwitch::Unset = self.rfc_mode {
             self.rfc_mode = prev.rfc_mode.clone();
@@ -189,19 +202,19 @@ impl http::Merge for ValidationConfig {
 }
 
 struct StrictSniCommand;
-impl NgxCommand for StrictSniCommand {
-    type Ctx = LocCtx<StrictSniHttpModuleImpl>;
+impl Command for StrictSniCommand {
+    type CallRule = HttpLocConf<ValidationConfig>;
     const NAME: ngx_str_t = ngx_string!("strict_sni");
 
-    const CONTEXT_FLAG: ngx_ext::CommandContextFlag = {
-        CommandContextFlag::Main
-            .union(CommandContextFlag::Srv)
-            .union(CommandContextFlag::Loc)
-    };
+    const CONTEXT_FLAG: CommandContextFlagSet = context_flags!(
+        CommandContextFlag::HttpMain,
+        CommandContextFlag::HttpSrv,
+        CommandContextFlag::HttpLoc
+    );
 
-    const ARG_FLAG: ngx_ext::CommandArgFlag = CommandArgFlag::Take1;
+    const ARG_FLAG: CommandArgFlagSet = arg_flags!(CommandArgFlag::Take1);
 
-    fn handler(cf: &ngx_conf_t, conf: &mut ValidationConfig) -> Result<(), ()> {
+    fn handler(cf: &mut ngx_conf_t, conf: &mut ValidationConfig) -> Result<(), CommandError> {
         if let Some(args) = unsafe { cf.args.as_ref() } {
             if let Some(ngx_arg) = unsafe { (args.elts as *mut ngx_str_t).add(1).as_ref() } {
                 let arg = ngx_arg.to_str();
@@ -233,23 +246,23 @@ impl NgxCommand for StrictSniCommand {
                 return Ok(());
             };
         }
-        Err(())
+        Err(CommandError)
     }
 }
 
 struct DirectFilterCommand;
-impl NgxCommand for DirectFilterCommand {
-    type Ctx = MainCtx<StrictSniHttpModuleImpl>;
+impl Command for DirectFilterCommand {
+    type CallRule = HttpMainConf<(Option<StrictSniCommon>, ValidationConfig)>;
     const NAME: ngx_str_t = ngx_string!("strict_sni_direct_filter");
 
-    const CONTEXT_FLAG: ngx_ext::CommandContextFlag = { CommandContextFlag::Main };
+    const CONTEXT_FLAG: CommandContextFlagSet = context_flags!(CommandContextFlag::HttpMain);
 
-    const ARG_FLAG: ngx_ext::CommandArgFlag = CommandArgFlag::Take1;
+    const ARG_FLAG: CommandArgFlagSet = arg_flags!(CommandArgFlag::Take1);
 
     fn handler(
-        cf: &ngx_conf_t,
+        cf: &mut ngx_conf_t,
         (_, conf): &mut (Option<StrictSniCommon>, ValidationConfig),
-    ) -> Result<(), ()> {
+    ) -> Result<(), CommandError> {
         if let Some(args) = unsafe { cf.args.as_ref() } {
             if let Some(ngx_arg) = unsafe { (args.elts as *mut ngx_str_t).add(1).as_ref() } {
                 let arg = ngx_arg.to_str();
@@ -281,7 +294,7 @@ impl NgxCommand for DirectFilterCommand {
                 return Ok(());
             };
         }
-        Err(())
+        Err(CommandError)
     }
 }
 
@@ -297,5 +310,40 @@ impl NgxCommand for DirectFilterCommand {
 
 //     fn module() -> &'static ngx_module_t {
 //         unsafe { &*addr_of!(client_certificate_filter_module) }
+//     }
+// }
+
+// #[cfg(test)]
+// mod test {
+//     use core::ptr::null_mut;
+
+//     struct A {
+//         x: u32,
+//         p: *mut u32,
+//     }
+//     const fn a() -> A {
+//         let mut a = A {
+//             x: 1,
+//             p: null_mut(),
+//         };
+//         let p = unsafe { &raw mut AGLBL.x };
+//         a.p = p;
+//         a
+//     }
+//     static mut AGLBL: A = a();
+//     #[test]
+//     fn global_self_pointer_test() {
+//         let a = &raw mut AGLBL;
+//         let x = unsafe { &mut *a }.x;
+//         let p = unsafe { &mut *a }.p;
+//         println!("golbal mem {:?} self pointer {:?}", a, p);
+//         println!("direct {:} indirect {:}", x, unsafe { *p });
+//     }
+
+//     trait TT<X: 'static> {
+//         const PTR: &'static mut X;
+//     }
+//     const fn resolve<X: 'static, T: TT<X>>() -> &'static mut X {
+//         T::PTR
 //     }
 // }
