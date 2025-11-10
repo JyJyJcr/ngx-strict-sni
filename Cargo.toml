@@ -13,7 +13,7 @@ crate-type = ["cdylib"]
 [dependencies]
 ngx = { git = "https://github.com/JyJyJcr/ngx-rust",branch="nightly" }
 #ngx = { path = "../ngx-rust" , default-features = false, features=["std","vendored"] }
-fluent-uri = "0.3.2"
+fluent-uri = "0.4.1"
 bitflags = "2.6.0"
 
 
